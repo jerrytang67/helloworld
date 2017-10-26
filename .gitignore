@@ -1,5 +1,12 @@
 
-ESP/.vs/
 ESP/ESP/bin/
 ESP/ESP/obj/
-ESP/packages/
+*/.vs/
+*/packages/
+*/*/bin/
+*/*/obj/
+*.rar
+*.sys
+*.exe
+*/X64/
+*/*/X64/
