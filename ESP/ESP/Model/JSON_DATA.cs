@@ -36,6 +36,7 @@ namespace ESP.Model
 
     public class Players
     {
+        public int id { get; set; }
         public float health { get; set; }
 
         public int isInactive { get; set; }

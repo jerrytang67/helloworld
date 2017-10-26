@@ -57,6 +57,7 @@ private:
 	 */
 	void readPlayers(json& w_data)
 	{
+		int own = 0;
 		for (int i = 0; i < m_playerCount; i++)
 		{
 			// read the position of Player
@@ -87,11 +88,12 @@ private:
 				std::string playerName = "";
 				unsigned char isInactive = m_kReader->readType<unsigned char>(playerState + 0x03CC, PROTO_NORMAL_READ);
 
-				w_data["players"].emplace_back(json::object({ { "t", actorTeam },{ "x", actorLocation.X },{ "y", actorLocation.Y },{"z",actorLocation.Z},{ "rotator",RelativeRotation.Y},
+				w_data["players"].emplace_back(json::object({ {"id",own}, { "t", actorTeam },{ "x", actorLocation.X },{ "y", actorLocation.Y },{"z",actorLocation.Z},{ "rotator",RelativeRotation.Y},
 					{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z },
 					//{"playerId",playerId }
 					//,{ "playerName","" },
 						{"health",Health },{"isInactive",isInactive } }));
+				own += 1;
 			}
 
 			if (actorGName == "DroppedItemGroup" || actorGName == "DroppedItemInteractionComponent")
@@ -191,10 +193,13 @@ private:
 
 				actorLocation.X += m_kReader->readType<int32_t>(m_PWorld + 0x918, PROTO_NORMAL_READ);
 				actorLocation.Y += m_kReader->readType<int32_t>(m_PWorld + 0x91C, PROTO_NORMAL_READ);
-
+				actorLocation.Z += m_kReader->readType<int32_t>(m_PWorld + 0x920, PROTO_NORMAL_READ);
+				Vector3 relativeLocation = m_kReader->readVec(rootCmpPtr + 0x01E0, PROTO_NORMAL_READ);
 				std::string carName = m_kReader->getGNameFromId(curActorID);
 
-				w_data["vehicles"].emplace_back(json::object({ { "v", carName.substr(0, 3) },{ "x", actorLocation.X },{ "y", actorLocation.Y } }));
+				w_data["vehicles"].emplace_back(json::object({ { "v", carName.substr(0, 3) },{ "x", actorLocation.X },{ "y", actorLocation.Y } ,
+				{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z }
+				}));
 
 			}
 		}

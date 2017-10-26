@@ -288,7 +288,7 @@
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
             //ctx.lineWidth = 5;
-            if (i == tracked_player) {
+            if (players[i].id== 0) {
                 color = '#00BB00';
                 isTeamMember = true;
                 isDrawLongLine = true;

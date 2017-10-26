@@ -13,14 +13,12 @@ using SharpDX.Mathematics.Interop;
 
 using Vector2 = ESP.Model.Vector2;
 using Vector3 = ESP.Model.Vector3;
+using System.Linq;
 
 namespace ESP
 {
     public partial class Form1 : Form
     {
-
-
-
         public Form1()
         {
             InitializeComponent();
@@ -82,7 +80,7 @@ namespace ESP
 
                 using (var w = new WebClient())
                 {
-                    while (true)
+                    while (!w.IsBusy)
                     {
                         // attempt to download JSON data as a string
                         try
@@ -166,7 +164,7 @@ namespace ESP
 
                             #region 车
 
-                            if (true)
+                            if (false)
                             {
                                 foreach (var v in json_data.vehicles)
                                 {
@@ -174,9 +172,10 @@ namespace ESP
                                     var vecRelativePos = vecLocalLocation - vecActorLocation;
                                     var lDeltaInMeters = vecRelativePos.Length / 100;
 
+
                                     Vector2 screenlocation;
                                     WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
-                                    
+
                                     DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
                                         (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
 
@@ -185,29 +184,52 @@ namespace ESP
 
                             #endregion
 
-                            #region 人物
-                            var playerList = new List<Player>();
 
-                            foreach (var player in json_data.players)
+                            #region 物品
+
+                            if (false)
                             {
-                                if (player.health > 0)
+                                foreach (var v in json_data.items)
                                 {
-                                    var vecPlayerLocation = new Vector3 { X = player.rx, Y = player.ry, Z = player.rz };
+                                    var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
+                                    var vecRelativePos = vecLocalLocation - vecActorLocation;
+                                    var lDeltaInMeters = vecRelativePos.Length / 100;
+
+                                    Vector2 screenlocation;
+                                    WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
+
+                                    DrawText($"{v.n}", (int)screenlocation.X,
+                                        (int)screenlocation.Y, brushPurple, fontFactory, fontESP, device);
+
+                                }
+                            }
+
+                            #endregion
+
+                            #region 人物
+                            var playerList = json_data.players.OrderBy(z => z.id).ToList();
+                            var localPlayer = playerList[0];
+                            foreach (var player in playerList)
+                            {
+                                if (player.health > 0 && player.id != 0 && localPlayer.t!= player.t)
+                                {
+                                    var vecPlayerLocation =
+                                        new Vector3 { X = player.rx, Y = player.ry, Z = player.rz };
                                     var vecRelativePos = vecLocalLocation - vecPlayerLocation;
                                     var lDeltaInMeters = vecRelativePos.Length / 100;
 
                                     #region Line ESP
 
                                     // 线
-                                    if (lDeltaInMeters <= 200 && lDeltaInMeters > 5 && json_data.players.Count<=50)
+                                    if (lDeltaInMeters <= 200 && lDeltaInMeters > 5 &&
+                                        json_data.players.Count <= 50)
                                     {
                                         Vector2 screenlocation;
                                         WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
 
-                                        device.DrawLine(new RawVector2(1920 / 2, 1080),
+                                        device.DrawLine(new RawVector2(2560 / 2, 1440),
                                             new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
                                     }
-
                                     #endregion
 
                                     #region Distance ESP
@@ -234,7 +256,7 @@ namespace ESP
                                         {
                                             Vector2 screenpos = centerpoint + vecRelativePos.To2D() / 100;
 
-                                            var radarPlayerRectangle = new RoundedRectangle() 
+                                            var radarPlayerRectangle = new RoundedRectangle()
                                             {
                                                 RadiusX = 4,
                                                 RadiusY = 4,
@@ -249,10 +271,15 @@ namespace ESP
 
                                     #endregion
                                 }
+
                             }
                         }
 
                         #endregion
+
+
+
+
 
 
                         // DRAW END
@@ -295,8 +322,8 @@ namespace ESP
                 vTransformed.Z = 1f;
 
             float FovAngle = POV.Fov;
-            float ScreenCenterX = 1920 / 2;
-            float ScreenCenterY = 1080 / 2;
+            float ScreenCenterX = 2560 / 2;
+            float ScreenCenterY = 1440 / 2;
 
             Screenlocation.X = ScreenCenterX + vTransformed.X * (ScreenCenterX / (float)Math.Tan(FovAngle * (float)Math.PI / 360)) / vTransformed.Z;
             Screenlocation.Y = ScreenCenterY - vTransformed.Y * (ScreenCenterX / (float)Math.Tan(FovAngle * (float)Math.PI / 360)) / vTransformed.Z;
