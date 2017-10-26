@@ -27,11 +27,7 @@ namespace pubg_database.Controllers
         // PUT api/values/5
         public int Put(int id, [FromBody]object value)
         {
-            if (id != 5)
-                Thread.Sleep(500);
-            else
                 Thread.Sleep(15);
-
             //var s = JsonConvert.SerializeObject(value);
             WebCacheProvider.Add($"pubg_{id}", value);
             return 0;
