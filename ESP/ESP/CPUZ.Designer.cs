@@ -2,9 +2,9 @@
 using System.Runtime.InteropServices;
 using System.Device;
 
-namespace ESP
+namespace CPUZ
 {
-    partial class Form1
+    partial class Cpuz
     {
 
         

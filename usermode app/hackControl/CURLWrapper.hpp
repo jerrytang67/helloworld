@@ -42,7 +42,8 @@ public:
 			curl_easy_setopt(m_curl, CURLOPT_VERBOSE, 0L);
 			curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
 			//curl_easy_setopt(m_curl, CURLOPT_URL, "m.wjhaomama.com/pubg/api/values/10");
-			curl_easy_setopt(m_curl, CURLOPT_URL, "127.0.0.1:8888/api/values/5");
+			//curl_easy_setopt(m_curl, CURLOPT_URL, "127.0.0.1:8888/api/values/5");
+			curl_easy_setopt(m_curl, CURLOPT_URL, "127.0.0.1:3000/api/5");
 			curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, "PUT");
 			// curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30L);
 			curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, write_data);

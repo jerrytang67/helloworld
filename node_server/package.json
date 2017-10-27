@@ -1,0 +1,12 @@
+{
+    "name": "hello-world",
+    "description": "hello world test app",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "body-parser": "^1.18.2",
+        "connect": "^3.6.5",
+        "express": "^4.16.2",
+        "memory-cache": "^0.2.0"
+    }
+}

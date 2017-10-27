@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace ESP.Model
+namespace CPUZ.Model
 {
     public enum Bones : int
     {

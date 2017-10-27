@@ -4,22 +4,22 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using ESP.Model;
+using CPUZ.Model;
 using Newtonsoft.Json;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 
-using Vector2 = ESP.Model.Vector2;
-using Vector3 = ESP.Model.Vector3;
+using Vector2 = CPUZ.Model.Vector2;
+using Vector3 = CPUZ.Model.Vector3;
 using System.Linq;
 
-namespace ESP
+namespace CPUZ
 {
-    public partial class Form1 : Form
+    public partial class Cpuz : Form
     {
-        public Form1()
+        public Cpuz()
         {
             InitializeComponent();
             //Make the window's border completely transparant
@@ -60,7 +60,9 @@ namespace ESP
                 AntialiasMode = AntialiasMode.Aliased
             };
 
-            var url = "http://127.0.0.1:8888/api/values/5";
+            //var url = "http://127.0.0.1:8888/api/values/5";
+            var url = "http://127.0.0.1:3000/api/5";
+
             var dxthread = new Thread(() =>
             {
 
@@ -87,6 +89,10 @@ namespace ESP
                         {
                             var str = w.DownloadString(url);
                             json_data = JsonConvert.DeserializeObject<JSON_DATA>(str);
+                            if (json_data == null)
+                            {
+                                continue;
+                            }
                         }
                         catch (Exception)
                         {
@@ -181,10 +187,8 @@ namespace ESP
 
                                 }
                             }
-
+                        
                             #endregion
-
-
                             #region 物品
 
                             if (false)
@@ -211,7 +215,7 @@ namespace ESP
                             var localPlayer = playerList[0];
                             foreach (var player in playerList)
                             {
-                                if (player.health > 0 && player.id != 0 && localPlayer.t!= player.t)
+                                if (player.health > 0 && player.id != 0)
                                 {
                                     var vecPlayerLocation =
                                         new Vector3 { X = player.rx, Y = player.ry, Z = player.rz };
@@ -221,8 +225,7 @@ namespace ESP
                                     #region Line ESP
 
                                     // 线
-                                    if (lDeltaInMeters <= 200 && lDeltaInMeters > 5 &&
-                                        json_data.players.Count <= 50)
+                                    if (lDeltaInMeters <= 200 &&json_data.players.Count <= 50)
                                     {
                                         Vector2 screenlocation;
                                         WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
@@ -235,7 +238,7 @@ namespace ESP
                                     #region Distance ESP
 
                                     // if (CheatSettings.DistanceESP)
-                                    if (lDeltaInMeters > 5)
+                                    if (true)
                                     {
                                         Vector2 screenlocation;
                                         WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);

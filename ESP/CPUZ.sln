@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESP", "ESP\ESP.csproj", "{9BC48D38-89A1-47C2-9C68-DC2B9881D033}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPUZ", "ESP\CPUZ.csproj", "{9BC48D38-89A1-47C2-9C68-DC2B9881D033}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

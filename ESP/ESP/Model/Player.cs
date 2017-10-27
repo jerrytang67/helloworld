@@ -1,4 +1,4 @@
-﻿namespace ESP.Model
+﻿namespace CPUZ.Model
 {
     public class Player
     {

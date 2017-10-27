@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ESP.Model
+namespace CPUZ.Model
 {
     public class JSON_DATA
     {

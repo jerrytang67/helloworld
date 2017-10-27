@@ -11,3 +11,5 @@ ESP/ESP/obj/
 */X64/
 */*/X64/
 /.vs
+node_server/node_modules/
+node_server/package-lock.json
