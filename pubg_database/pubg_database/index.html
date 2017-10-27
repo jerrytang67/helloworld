@@ -1,7 +1,3 @@
-﻿@model dynamic
-@{
-    Layout = "";
-}
 <!DOCTYPE html>
 <html>
 
@@ -14,11 +10,10 @@
 <script>
 
     function getJson() {
+        //$.getJSON("http://m.wjhaomama.com/pubg/api/values/6",
         $.getJSON("http://127.0.0.1:3000/api/5",
-        //$.getJSON("http://127.0.0.1:8888/api/values/@ViewBag.PutId",
             function (data) {
                 //locations = JSON.parse(data);
-
 
                 locations = data;
             });
@@ -431,7 +426,7 @@
         ctx.fillText(txt, x1 + length * Math.cos(Math.PI * angle / 180.0), y1 + length * Math.sin(Math.PI * angle / 180.0));
     }
 
-    mapImage.src = "/map.jpg"
+    mapImage.src = "map.jpg"
 
 
     window.onload = function () {
