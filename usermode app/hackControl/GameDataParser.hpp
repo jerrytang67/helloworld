@@ -223,7 +223,7 @@ private:
 
 	void readLocals()
 	{
-		m_UWorld = m_kReader->readType<int64_t>(m_kReader->getPUBase() + 0x37E2908, PROTO_NORMAL_READ);
+		m_UWorld = m_kReader->readType<int64_t>(m_kReader->getPUBase() + 0x37E5988, PROTO_NORMAL_READ);
 		m_gameInstance = m_kReader->readType<int64_t>(m_UWorld + 0x140, PROTO_NORMAL_READ);
 		m_ULocalPlayer = m_kReader->readType<int64_t>(m_gameInstance + 0x38, PROTO_NORMAL_READ);
 		m_localPlayer = m_kReader->readType<int64_t>(m_ULocalPlayer+0x0, PROTO_NORMAL_READ);

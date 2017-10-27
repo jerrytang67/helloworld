@@ -10,3 +10,4 @@ ESP/ESP/obj/
 *.exe
 */X64/
 */*/X64/
+/.vs
