@@ -217,22 +217,21 @@ namespace CPUZ
                                         var lDeltaInMeters = vecRelativePos.Length / 100.0f;
 
                                         #region 线条
+                                        if (Setting.线条)
+                                            if (lDeltaInMeters <= 200 && json_data.players.Count <= 50 &&
+                                                player.t != localPlayer.t)
+                                            {
+                                                Vector2 screenlocation;
+                                                WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
 
-                                        // 线
-                                        if (lDeltaInMeters <= 200 && json_data.players.Count <= 50 &&
-                                            player.t != localPlayer.t)
-                                        {
-                                            Vector2 screenlocation;
-                                            WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
-
-                                            device.DrawLine(new RawVector2(2560 / 2, 1440),
-                                                new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
-                                        }
+                                                device.DrawLine(new RawVector2(2560 / 2, 1440),
+                                                    new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
+                                            }
 
                                         #endregion
 
                                         #region Distance ESP
-                                        if (true)
+                                        if (Setting.距离和血量)
                                         {
                                             Vector2 screenlocation;
                                             WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);

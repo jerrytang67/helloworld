@@ -28,6 +28,8 @@ namespace CPUZ
         {
             this.chk1.Checked = Setting.车辆显示;
             this.chk2.Checked = Setting.物品显示;
+            this.chkHealth.Checked = Setting.距离和血量;
+            this.chkLine.Checked = Setting.线条;
 
             new Cpuz().Show();
 
@@ -51,6 +53,18 @@ namespace CPUZ
         {
             Application.Exit();
             
+        }
+
+        private void chkHealth_CheckedChanged(object sender, EventArgs e)
+        {
+            Setting.距离和血量 = chkHealth.Checked;
+
+        }
+
+        private void chkLine_CheckedChanged(object sender, EventArgs e)
+        {
+            Setting.线条 = chkLine.Checked;
+
         }
     }
 }

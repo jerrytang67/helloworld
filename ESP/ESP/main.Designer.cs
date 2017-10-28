@@ -33,6 +33,8 @@
             this.chk2 = new MaterialSkin.Controls.MaterialCheckBox();
             this.chk1 = new MaterialSkin.Controls.MaterialCheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.chkHealth = new MaterialSkin.Controls.MaterialCheckBox();
+            this.chkLine = new MaterialSkin.Controls.MaterialCheckBox();
             this.materialTabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.SuspendLayout();
@@ -51,6 +53,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.chkLine);
+            this.tabPage1.Controls.Add(this.chkHealth);
             this.tabPage1.Controls.Add(this.chk2);
             this.tabPage1.Controls.Add(this.chk1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
@@ -105,6 +109,40 @@
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // chkHealth
+            // 
+            this.chkHealth.AutoSize = true;
+            this.chkHealth.Depth = 0;
+            this.chkHealth.Font = new System.Drawing.Font("Roboto", 10F);
+            this.chkHealth.Location = new System.Drawing.Point(17, 95);
+            this.chkHealth.Margin = new System.Windows.Forms.Padding(0);
+            this.chkHealth.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkHealth.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkHealth.Name = "chkHealth";
+            this.chkHealth.Ripple = true;
+            this.chkHealth.Size = new System.Drawing.Size(121, 30);
+            this.chkHealth.TabIndex = 2;
+            this.chkHealth.Text = "人物距离血量";
+            this.chkHealth.UseVisualStyleBackColor = true;
+            this.chkHealth.CheckedChanged += new System.EventHandler(this.chkHealth_CheckedChanged);
+            // 
+            // chkLine
+            // 
+            this.chkLine.AutoSize = true;
+            this.chkLine.Depth = 0;
+            this.chkLine.Font = new System.Drawing.Font("Roboto", 10F);
+            this.chkLine.Location = new System.Drawing.Point(17, 137);
+            this.chkLine.Margin = new System.Windows.Forms.Padding(0);
+            this.chkLine.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkLine.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkLine.Name = "chkLine";
+            this.chkLine.Ripple = true;
+            this.chkLine.Size = new System.Drawing.Size(60, 30);
+            this.chkLine.TabIndex = 3;
+            this.chkLine.Text = "线条";
+            this.chkLine.UseVisualStyleBackColor = true;
+            this.chkLine.CheckedChanged += new System.EventHandler(this.chkLine_CheckedChanged);
+            // 
             // mainFrom
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -129,5 +167,7 @@
         private System.Windows.Forms.TabPage tabPage2;
         private MaterialSkin.Controls.MaterialCheckBox chk2;
         private MaterialSkin.Controls.MaterialCheckBox chk1;
+        private MaterialSkin.Controls.MaterialCheckBox chkLine;
+        private MaterialSkin.Controls.MaterialCheckBox chkHealth;
     }
 }
