@@ -89,10 +89,7 @@ namespace CPUZ
                         {
                             var str = w.DownloadString(url);
                             json_data = JsonConvert.DeserializeObject<JSON_DATA>(str);
-                            if (json_data == null)
-                            {
-                                continue;
-                            }
+
                         }
                         catch (Exception)
                         {
@@ -101,195 +98,203 @@ namespace CPUZ
                         finally
                         {
 
-                            device.BeginDraw();
-                            device.Clear(null);
-
-                            #region RADAR
-
-                            int radarX = 20;
-                            int radarY = 140;
-                            int radarSize = 200;
-                            int radarBorder = 1;
-                            Vector2 centerpoint = new Vector2(radarX + radarSize / 2, radarY + radarSize / 2);
-
-                            // TODO: INTEGRATE INTO MINIMAP
-                            if (false)
+                            if (json_data != null)
                             {
-                                var radarOuterRectangle = new RawRectangleF(radarX, radarY, radarX + radarSize,
-                                    radarY + radarSize);
-                                var radarRectangle = new RawRectangleF(radarX + radarBorder, radarY + radarBorder,
-                                    radarX + radarSize - radarBorder, radarY + radarSize - radarBorder);
+                                device.BeginDraw();
+                                device.Clear(null);
 
-                                var radarCenterRectangle = new RoundedRectangle()
+                                #region RADAR
+
+                                int radarX = 20;
+                                int radarY = 140;
+                                int radarSize = 200;
+                                int radarBorder = 1;
+                                Vector2 centerpoint = new Vector2(radarX + radarSize / 2, radarY + radarSize / 2);
+
+                                // TODO: INTEGRATE INTO MINIMAP
+                                if (false)
                                 {
-                                    RadiusX = 4,
-                                    RadiusY = 4,
-                                    Rect = new RawRectangleF(centerpoint.X, centerpoint.Y, centerpoint.X + 4,
-                                        centerpoint.Y + 4)
+                                    var radarOuterRectangle = new RawRectangleF(radarX, radarY, radarX + radarSize,
+                                        radarY + radarSize);
+                                    var radarRectangle = new RawRectangleF(radarX + radarBorder, radarY + radarBorder,
+                                        radarX + radarSize - radarBorder, radarY + radarSize - radarBorder);
+
+                                    var radarCenterRectangle = new RoundedRectangle()
+                                    {
+                                        RadiusX = 4,
+                                        RadiusY = 4,
+                                        Rect = new RawRectangleF(centerpoint.X, centerpoint.Y, centerpoint.X + 4,
+                                            centerpoint.Y + 4)
+                                    };
+
+                                    device.FillRectangle(radarRectangle, brushBlack);
+                                    device.DrawRectangle(radarRectangle, brushWhite);
+
+                                    device.FillRoundedRectangle(radarCenterRectangle, brushGreen);
+
+                                }
+
+                                #endregion
+
+
+                                var vecLocalLocation = new Model.Vector3
+                                {
+                                    X = json_data.camera[1].X,
+                                    Y = json_data.camera[1].Y,
+                                    Z = json_data.camera[1].Z
                                 };
 
-                                device.FillRectangle(radarRectangle, brushBlack);
-                                device.DrawRectangle(radarRectangle, brushWhite);
-
-                                device.FillRoundedRectangle(radarCenterRectangle, brushGreen);
-
-                            }
-
-                            #endregion
-
-
-                            var vecLocalLocation = new Model.Vector3
-                            {
-                                X = json_data.camera[1].X,
-                                Y = json_data.camera[1].Y,
-                                Z = json_data.camera[1].Z
-                            };
-
-                            var PlayerCameraManager = new APlayerCameraManager
-                            {
-                                CameraCache = new FCameraCacheEntry
+                                var PlayerCameraManager = new APlayerCameraManager
                                 {
-                                    POV = new FMinimalViewInfo
+                                    CameraCache = new FCameraCacheEntry
                                     {
-                                        Fov = json_data.camera[2].X,
-                                        Location = new Model.Vector3
+                                        POV = new FMinimalViewInfo
                                         {
-                                            X = json_data.camera[1].X,
-                                            Y = json_data.camera[1].Y,
-                                            Z = json_data.camera[1].Z
-                                        },
-                                        Rotation = new Model.FRotator
-                                        {
-                                            Pitch = json_data.camera[0].X,
-                                            Yaw = json_data.camera[0].Y,
-                                            Roll = json_data.camera[0].Z
-                                        }
-                                    }
-                                }
-                            };
-
-                            #region 车
-
-                            if (false)
-                            {
-                                foreach (var v in json_data.vehicles)
-                                {
-                                    var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
-                                    var vecRelativePos = vecLocalLocation - vecActorLocation;
-                                    var lDeltaInMeters = vecRelativePos.Length / 100;
-
-
-                                    Vector2 screenlocation;
-                                    WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
-
-                                    DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
-                                        (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
-
-                                }
-                            }
-                        
-                            #endregion
-                            #region 物品
-
-                            if (false)
-                            {
-                                foreach (var v in json_data.items)
-                                {
-                                    var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
-                                    var vecRelativePos = vecLocalLocation - vecActorLocation;
-                                    var lDeltaInMeters = vecRelativePos.Length / 100;
-
-                                    Vector2 screenlocation;
-                                    WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
-
-                                    DrawText($"{v.n}", (int)screenlocation.X,
-                                        (int)screenlocation.Y, brushPurple, fontFactory, fontESP, device);
-
-                                }
-                            }
-
-                            #endregion
-
-                            #region 人物
-                            var playerList = json_data.players.OrderBy(z => z.id).ToList();
-                            var localPlayer = playerList[0];
-                            foreach (var player in playerList)
-                            {
-                                if (player.health > 0 && player.id != 0)
-                                {
-                                    var vecPlayerLocation =
-                                        new Vector3 { X = player.rx, Y = player.ry, Z = player.rz };
-                                    var vecRelativePos = vecLocalLocation - vecPlayerLocation;
-                                    var lDeltaInMeters = vecRelativePos.Length / 100;
-
-                                    #region Line ESP
-
-                                    // 线
-                                    if (lDeltaInMeters <= 200 &&json_data.players.Count <= 50)
-                                    {
-                                        Vector2 screenlocation;
-                                        WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
-
-                                        device.DrawLine(new RawVector2(2560 / 2, 1440),
-                                            new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
-                                    }
-                                    #endregion
-
-                                    #region Distance ESP
-
-                                    // if (CheatSettings.DistanceESP)
-                                    if (true)
-                                    {
-                                        Vector2 screenlocation;
-                                        WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
-
-                                        DrawText($"HP：{(int)player.health} {(int)lDeltaInMeters}m",
-                                            (int)screenlocation.X,
-                                            (int)screenlocation.Y, lDeltaInMeters >= 200 ? brushGreen : brushRed,
-                                            fontFactory, fontESP, device);
-                                    }
-
-                                    #endregion
-
-                                    #region Radar
-
-                                    if (false)
-                                    {
-                                        if (lDeltaInMeters <= radarSize / 2 /*DISTANCE FROM CENTER TO EDGE*/)
-                                        {
-                                            Vector2 screenpos = centerpoint + vecRelativePos.To2D() / 100;
-
-                                            var radarPlayerRectangle = new RoundedRectangle()
+                                            Fov = json_data.camera[2].X,
+                                            Location = new Model.Vector3
                                             {
-                                                RadiusX = 4,
-                                                RadiusY = 4,
-                                                Rect = new RawRectangleF(screenpos.X, screenpos.Y, screenpos.X + 5,
-                                                    screenpos.Y + 5)
-                                            };
-
-                                            // DRAW ENEMY
-                                            device.FillRoundedRectangle(radarPlayerRectangle, brushRed);
+                                                X = json_data.camera[1].X,
+                                                Y = json_data.camera[1].Y,
+                                                Z = json_data.camera[1].Z
+                                            },
+                                            Rotation = new Model.FRotator
+                                            {
+                                                Pitch = json_data.camera[0].X,
+                                                Yaw = json_data.camera[0].Y,
+                                                Roll = json_data.camera[0].Z
+                                            }
                                         }
                                     }
+                                };
 
-                                    #endregion
+                                #region 车
+
+                                if (false)
+                                {
+                                    foreach (var v in json_data.vehicles)
+                                    {
+                                        var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
+                                        var vecRelativePos = vecLocalLocation - vecActorLocation;
+                                        var lDeltaInMeters = vecRelativePos.Length / 100;
+
+
+                                        Vector2 screenlocation;
+                                        WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
+
+                                        DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
+                                            (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
+
+                                    }
                                 }
 
+                                #endregion
+
+                                #region 物品
+
+                                //todo:有BUG
+                                if (false)
+                                {
+                                    foreach (var v in json_data.items)
+                                    {
+                                        var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
+                                        var vecRelativePos = vecLocalLocation - vecActorLocation;
+                                        var lDeltaInMeters = vecRelativePos.Length / 100;
+
+                                        Vector2 screenlocation;
+                                        WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
+
+                                        DrawText($"{v.n}", (int)screenlocation.X,
+                                            (int)screenlocation.Y, brushPurple, fontFactory, fontESP, device);
+
+                                    }
+                                }
+
+                                #endregion
+
+                                #region 人物
+
+                                var playerList = json_data.players.OrderBy(z => z.id).ToList();
+                                var localPlayer = playerList[0];
+                                foreach (var player in playerList)
+                                {
+                                    if (player.health > 0 && player.id != 0)
+                                    {
+                                        var vecPlayerLocation = new Vector3 { X = player.rx, Y = player.ry, Z = player.rz };
+                                        var vecRelativePos = vecLocalLocation - vecPlayerLocation;
+                                        //距离
+                                        var lDeltaInMeters = vecRelativePos.Length / 100.0f;
+
+                                        #region 线条
+
+                                        // 线
+                                        if (lDeltaInMeters <= 200 && json_data.players.Count <= 50 &&
+                                            player.t != localPlayer.t)
+                                        {
+                                            Vector2 screenlocation;
+                                            WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
+
+                                            device.DrawLine(new RawVector2(2560 / 2, 1440),
+                                                new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
+                                        }
+
+                                        #endregion
+
+                                        #region Distance ESP
+                                        if (true)
+                                        {
+                                            Vector2 screenlocation;
+                                            WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
+
+
+
+                                            SolidColorBrush brush = brushRed;
+                                            if (lDeltaInMeters >= 250)
+                                                brush = brushPurple;
+                                            if (lDeltaInMeters >= 500)
+                                                brush = brushGreen;
+                                            if (player.t == localPlayer.t)
+                                                brush = brushGreen;
+
+                                            DrawText($"[{player.id}]{(int)player.health} {(int)lDeltaInMeters}m",
+                                                (int)screenlocation.X,
+                                                (int)screenlocation.Y,
+                                                brush,
+                                                fontFactory, fontESP, device);
+                                        }
+
+                                        #endregion
+
+                                        #region Radar
+                                        if (false)
+                                        {
+                                            if (lDeltaInMeters <= radarSize / 2 /*DISTANCE FROM CENTER TO EDGE*/)
+                                            {
+                                                Vector2 screenpos = centerpoint + vecRelativePos.To2D() / 100;
+
+                                                var radarPlayerRectangle = new RoundedRectangle()
+                                                {
+                                                    RadiusX = 4,
+                                                    RadiusY = 4,
+                                                    Rect = new RawRectangleF(screenpos.X, screenpos.Y, screenpos.X + 5,
+                                                        screenpos.Y + 5)
+                                                };
+
+                                                // DRAW ENEMY
+                                                device.FillRoundedRectangle(radarPlayerRectangle, brushRed);
+                                            }
+                                        }
+
+                                        #endregion
+                                    }
+
+                                }
+                                #endregion
+                                // DRAW END
+                                device.EndDraw();
                             }
+                            Thread.Sleep(1000 / 60);
+
                         }
-
-                        #endregion
-
-
-
-
-
-
-                        // DRAW END
-                        device.EndDraw();
-
-                        Thread.Sleep(1000 / 60);
-
                     }
 
                 }

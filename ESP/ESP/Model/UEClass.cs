@@ -1,8 +1,67 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using SharpDX;
 
 namespace CPUZ.Model
 {
+    public class FTransform
+    {
+        public Vector4 Rotation;
+        public Vector3 Translation;
+        public Vector3 Scale3D;
+        public FTransform(Vector4 rot, Vector3 translation, Vector3 scale)
+        {
+            Rotation = rot;
+            Translation = translation;
+            Scale3D = scale;
+        }
+
+        public Matrix ToMatrixWithScale()
+        {
+            Matrix m = new Matrix();
+
+            m.M41 = Translation.X;
+            m.M42 = Translation.Y;
+            m.M43 = Translation.Z;
+
+            float x2 = Rotation.X + Rotation.X;
+            float y2 = Rotation.Y + Rotation.Y;
+            float z2 = Rotation.Z + Rotation.Z;
+
+            float xx2 = Rotation.X * x2;
+            float yy2 = Rotation.Y * y2;
+            float zz2 = Rotation.Z * z2;
+            m.M11 = (1.0f - (yy2 + zz2)) * Scale3D.X;
+            m.M22 = (1.0f - (xx2 + zz2)) * Scale3D.Y;
+            m.M33 = (1.0f - (xx2 + yy2)) * Scale3D.Z;
+
+
+            float yz2 = Rotation.Y * z2;
+            float wx2 = Rotation.W * x2;
+            m.M32 = (yz2 - wx2) * Scale3D.Z;
+            m.M23 = (yz2 + wx2) * Scale3D.Y;
+
+
+            float xy2 = Rotation.X * y2;
+            float wz2 = Rotation.W * z2;
+            m.M21 = (xy2 - wz2) * Scale3D.Y;
+            m.M12 = (xy2 + wz2) * Scale3D.X;
+
+
+            float xz2 = Rotation.X * z2;
+            float wy2 = Rotation.W * y2;
+            m.M31 = (xz2 + wy2) * Scale3D.Z;
+            m.M13 = (xz2 - wy2) * Scale3D.X;
+
+            m.M14 = 0.0f;
+            m.M24 = 0.0f;
+            m.M34 = 0.0f;
+            m.M44 = 1.0f;
+
+            return m;
+        }
+    }
+
     public enum Bones : int
     {
         Root = 0,
