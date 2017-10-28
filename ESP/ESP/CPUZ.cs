@@ -90,14 +90,6 @@ namespace CPUZ
                             var str = w.DownloadString(url);
                             json_data = JsonConvert.DeserializeObject<JSON_DATA>(str);
 
-                        }
-                        catch (Exception)
-                        {
-
-                        }
-                        finally
-                        {
-
                             if (json_data != null)
                             {
                                 device.BeginDraw();
@@ -169,7 +161,7 @@ namespace CPUZ
 
                                 #region 车
 
-                                if (false)
+                                if (Setting.车辆显示)
                                 {
                                     foreach (var v in json_data.vehicles)
                                     {
@@ -192,7 +184,7 @@ namespace CPUZ
                                 #region 物品
 
                                 //todo:有BUG
-                                if (false)
+                                if (Setting.物品显示)
                                 {
                                     foreach (var v in json_data.items)
                                     {
@@ -292,9 +284,15 @@ namespace CPUZ
                                 // DRAW END
                                 device.EndDraw();
                             }
-                            Thread.Sleep(1000 / 60);
 
                         }
+                        catch (Exception ex)
+                        {
+                            System.IO.File.WriteAllText("c:\\bug_json.txt", JsonConvert.SerializeObject(json_data));
+                            continue;
+                        }
+                        Thread.Sleep(1000 / 60);
+
                     }
 
                 }
