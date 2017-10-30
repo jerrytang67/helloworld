@@ -135,8 +135,8 @@ namespace CPUZ
             json.camera.Add(new Camera { n = "Location", X = povLocation.X, Y = povLocation.Y, Z = povLocation.Z });
             json.camera.Add(new Camera { n = "Fov", X = Fov, Y = 0, Z = 0 });
 
-            json.zone.Add(new Zone { r = "blueR", x = blue.X, y = blue.Y });
-            json.zone.Add(new Zone { r = "whiteR", x = white.X, y = white.Y });
+            json.zone.Add(new Zone { r = blueR, x = blue.X, y = blue.Y });
+            json.zone.Add(new Zone { r = whiteR, x = white.X, y = white.Y });
 
 
             List<string> a = new List<string>();

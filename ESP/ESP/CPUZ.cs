@@ -84,7 +84,7 @@ namespace CPUZ
                     {
                         json_data = DoGame.getGameDate();
 
-                        if (json_data != null)
+                        if (json_data != null&& json_data.players.Count>0)
                         {
                             mainFrom.STATE = true;
                             device.BeginDraw();
@@ -298,32 +298,38 @@ namespace CPUZ
                     }
                     catch (Exception ex)
                     {
-                        //System.IO.File.WriteAllText("c:\\log\\bug_json.txt", JsonConvert.SerializeObject(json_data));
+                        System.IO.File.WriteAllText("c:\\log\\bug_json.txt", JsonConvert.SerializeObject(json_data));
                     }
                     Thread.Sleep(1000 / 60);
                 }
             });
-            //System.IO.File.WriteAllText("c:\\log\\bug_json.txt", @"cpuz start");
             var webThread = new Thread(() =>
             {
                 while (true)
                 {
-                    if (Setting.Web端)
+                    if (Setting.Web端 && json_data.players.Count > 0)
                     {
-                        using (var webClient = new WebClient())
+                        try
                         {
-                            // 指定 WebClient 編碼
-                            webClient.Encoding = Encoding.UTF8;
-                            // 指定 WebClient 的 Content-Type header
-                            webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-                            // 指定 WebClient 的 authorization header
-                            //webClient.Headers.Add("authorization", "token {apitoken}");
-                            // 執行 PUT 動作
-                            var result = webClient.UploadString("http://127.0.0.1:3000/api/5", "PUT", JsonConvert.SerializeObject(json_data));
+
+                            using (var webClient = new WebClient())
+                            {
+                                // 指定 WebClient 編碼
+                                webClient.Encoding = Encoding.UTF8;
+                                // 指定 WebClient 的 Content-Type header
+                                webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+                                // 指定 WebClient 的 authorization header
+                                //webClient.Headers.Add("authorization", "token {apitoken}");
+                                // 執行 PUT 動作
+                                var result = webClient.UploadString("http://127.0.0.1:3000/api/5", "PUT", JsonConvert.SerializeObject(json_data));
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            continue;
                         }
                     }
                     Thread.Sleep(200);
-
                 }
             });
 
@@ -332,15 +338,11 @@ namespace CPUZ
             webThread.IsBackground = true;
             webThread.Start();
 
-            var marg = new Win32.Margins();
-            marg.Left = 0;
-            marg.Top = 0;
-            marg.Right = this.Width;
-            marg.Bottom = this.Height;
+            var marg = new Win32.Margins{Left = 0,Top = 0,Right = this.Width,Bottom = this.Height};
             Win32.DwmExtendFrameIntoClientArea(this.Handle, ref marg);
         }
 
-        public bool WorldToScreen(Vector3 WorldLocation, APlayerCameraManager CameraManager, out Vector2 Screenlocation)
+        private bool WorldToScreen(Vector3 WorldLocation, APlayerCameraManager CameraManager, out Vector2 Screenlocation)
         {
             Screenlocation = new Vector2(0, 0);
 
@@ -366,7 +368,7 @@ namespace CPUZ
             return true;
         }
 
-        public SharpDX.DirectWrite.TextLayout TextLayout(string szText, SharpDX.DirectWrite.Factory factory, SharpDX.DirectWrite.TextFormat font) =>
+        private SharpDX.DirectWrite.TextLayout TextLayout(string szText, SharpDX.DirectWrite.Factory factory, SharpDX.DirectWrite.TextFormat font) =>
             new SharpDX.DirectWrite.TextLayout(factory, szText, font, float.MaxValue, float.MaxValue);
 
 
@@ -381,7 +383,7 @@ namespace CPUZ
         }
 
 
-        public void DrawText(string szText, int x, int y, SharpDX.Direct2D1.Brush foregroundBroush, SharpDX.DirectWrite.Factory fontFactory, SharpDX.DirectWrite.TextFormat font, WindowRenderTarget device)
+        private void DrawText(string szText, int x, int y, SharpDX.Direct2D1.Brush foregroundBroush, SharpDX.DirectWrite.Factory fontFactory, SharpDX.DirectWrite.TextFormat font, WindowRenderTarget device)
         {
             var tempTextLayout = TextLayout(szText, fontFactory, font);
 
@@ -390,10 +392,8 @@ namespace CPUZ
             tempTextLayout.Dispose();
         }
 
-        public RawColor4 RawColorFromColor(Color color) => new RawColor4(color.R, color.G, color.B, color.A);
+        private RawColor4 RawColorFromColor(Color color) => new RawColor4(color.R, color.G, color.B, color.A);
         //color.ToArgb() >> 16 & 255L, color.ToArgb() >> 8 & 255L, (byte)color.ToArgb() & 255L, color.ToArgb() >> 24 & 255L);
-
-
 
         private static class Win32
         {

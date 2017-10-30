@@ -70,7 +70,7 @@ namespace CPUZ.Model
 
     public class Zone
     {
-        public string r { get; set; }
+        public float r { get; set; }
         public float x { get; set; }
         public float y { get; set; }
     }
