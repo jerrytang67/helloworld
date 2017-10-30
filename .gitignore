@@ -13,3 +13,4 @@ ESP/ESP/obj/
 /.vs
 node_server/node_modules/
 node_server/package-lock.json
+UPSecurityInput/

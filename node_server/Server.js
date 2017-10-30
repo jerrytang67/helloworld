@@ -4,8 +4,8 @@ var cache = require('memory-cache');
 var app = express();
 
 app.put('/api/:id', bodyParser, function (req, res) {
-    cache.put("data", req.body);
-    res.status(200).send("ok");
+        cache.put("data", req.body);
+        res.status(200).send("ok");
 });
 
 app.get('/api/:id', function (req, res) {

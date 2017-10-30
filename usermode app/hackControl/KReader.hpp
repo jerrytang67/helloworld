@@ -3,7 +3,7 @@
 #include <string>
 #include <exception>
 #include "Types.hpp"
-
+#include <iostream>
 
 class KReader
 {
@@ -32,7 +32,7 @@ public:
 		void* read = nullptr;
 
 		// create a struct that requests the base address
-		readStruct rStruct{ (uint64_t)&base, (uint64_t)read, sizeof(int64_t), (uint32_t)GetCurrentProcessId(), 0, TRUE, 1 };
+		readStruct rStruct{ (uint64_t)&base, (uint64_t)read, sizeof(int64_t), (uint32_t)GetCurrentProcessId(), 0, TRUE, 1 ,TRUE,0 };
 		// send the struct to IOCTL
 		WriteFile(m_hDriver, (LPCVOID)&rStruct, sizeof(ReadStruct), NULL, NULL);
 
@@ -87,7 +87,7 @@ public:
 
 		if (w_protoMsg == PROTO_NORMAL_READ)
 		{
-			readStruct luku{ (uint64_t)&writeMe, (uint64_t)w_read, sizeof(Vector3), (uint32_t)GetCurrentProcessId(), 0, TRUE, 0 };
+			readStruct luku{ (uint64_t)&writeMe, (uint64_t)w_read, sizeof(Vector3), (uint32_t)GetCurrentProcessId(), 0, TRUE, 0 ,TRUE, 0 };
 			// send the struct to IOCTL
 			WriteFile(m_hDriver, (LPCVOID)&luku, sizeof(ReadStruct), NULL, NULL);
 		}
@@ -103,7 +103,7 @@ public:
 		int64_t singleNamePtr = readType<int64_t>(singleNameChunk + 8 * (w_id % 0x4000), PROTO_NORMAL_READ);
 
 		char* name;
-		if ((name = (char*)readSize(singleNamePtr + 16, 64, PROTO_NORMAL_READ)) != NULL)
+		if ((name = (char*)readSize(singleNamePtr + 16, 10, PROTO_NORMAL_READ)) != NULL)
 		{
 			std::string s = std::string(name);
 			delete name;

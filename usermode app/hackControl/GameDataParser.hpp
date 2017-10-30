@@ -83,16 +83,16 @@ private:
 				float Health = m_kReader->readType<float>(curActor + 0x107C, PROTO_NORMAL_READ);
 				Vector3 relativeLocation = m_kReader->readVec(rootCmpPtr + 0x01E0, PROTO_NORMAL_READ);
 
+
 				Vector3 RelativeRotation = m_kReader->readVec(rootCmpPtr + 0x1EC, PROTO_NORMAL_READ);
 				int32_t playerId = m_kReader->readType<int32_t>(playerState + 0x03C8, PROTO_NORMAL_READ);
-				std::string playerName = "";
 				unsigned char isInactive = m_kReader->readType<unsigned char>(playerState + 0x03CC, PROTO_NORMAL_READ);
 
 				w_data["players"].emplace_back(json::object({ {"id",own}, { "t", actorTeam },{ "x", actorLocation.X },{ "y", actorLocation.Y },{"z",actorLocation.Z},{ "rotator",RelativeRotation.Y},
 					{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z },
-					//{"playerId",playerId }
-					//,{ "playerName","" },
-						{"health",Health },{"isInactive",isInactive } }));
+					{"health",Health },{"isInactive",isInactive } 
+					,{"AID",curActorID }
+				}));
 				own += 1;
 			}
 
@@ -106,10 +106,12 @@ private:
 				for (int j = 0; j < DroppedItemCount; j++)
 				{
 					int64_t ADroppedItem = m_kReader->readType<int64_t>(DroppedItemArray + j * 0x10, PROTO_NORMAL_READ);
-					Vector3 droppedLocation = m_kReader->readVec(ADroppedItem + 0x1E0, PROTO_NORMAL_READ);
+					Vector3 droppedLocation = m_kReader->readVec(ADroppedItem + 0x01E0, PROTO_NORMAL_READ);
 					droppedLocation.X = droppedLocation.X + actorLocation.X + m_kReader->readType<int32_t>(m_PWorld + 0x918, PROTO_NORMAL_READ);
 					droppedLocation.Y = droppedLocation.Y + actorLocation.Y + m_kReader->readType<int32_t>(m_PWorld + 0x91C, PROTO_NORMAL_READ);
-					int64_t UItem = m_kReader->readType<int64_t>(ADroppedItem + 0x448, PROTO_NORMAL_READ);
+					droppedLocation.Z = droppedLocation.Z + actorLocation.Z + m_kReader->readType<int32_t>(m_PWorld + 0x920, PROTO_NORMAL_READ);
+
+					int64_t UItem = m_kReader->readType<int64_t>(ADroppedItem + 0x0448, PROTO_NORMAL_READ);
 					int32_t UItemID = m_kReader->readType<int32_t>(UItem + 0x18, PROTO_NORMAL_READ);
 					std::string itemName = m_kReader->getGNameFromId(UItemID);
 
@@ -119,16 +121,12 @@ private:
 						if (itemName.substr(0, it->first.length()) == it->first)
 						{
 							int64_t rootCmpPtr = m_kReader->readType<int64_t>(curActor + 0x180, PROTO_NORMAL_READ);
-							Vector3 actorLocation = m_kReader->readVec(rootCmpPtr + 0x1A0, PROTO_NORMAL_READ);
 
-							actorLocation.X += m_kReader->readType<int32_t>(m_PWorld + 0x918, PROTO_NORMAL_READ);
-							actorLocation.Y += m_kReader->readType<int32_t>(m_PWorld + 0x91C, PROTO_NORMAL_READ);
-							actorLocation.Z += m_kReader->readType<int32_t>(m_PWorld + 0X920, PROTO_NORMAL_READ);
 							Vector3 relativeLocation = m_kReader->readVec(rootCmpPtr + 0x01E0, PROTO_NORMAL_READ);
 
 							w_data["items"].emplace_back(json::object({ { "n", it->second },{ "x", droppedLocation.X },{ "y", droppedLocation.Y },{"z",droppedLocation.Z },
 							{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z }
-
+								,{ "AID",curActorID }
 							}));
 						}
 					}
@@ -148,6 +146,7 @@ private:
 
 				w_data["vehicles"].emplace_back(json::object({ { "v", "Drop" },{ "x", actorLocation.X },{ "y", actorLocation.Y },{ "z", actorLocation.Z } ,
 				{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z }
+					,{ "AID",curActorID }
 				}));
 
 			}
@@ -199,18 +198,17 @@ private:
 
 				w_data["vehicles"].emplace_back(json::object({ { "v", carName.substr(0, 3) },{ "x", actorLocation.X },{ "y", actorLocation.Y } ,
 				{ "rx", relativeLocation.X },{ "ry", relativeLocation.Y },{ "rz",relativeLocation.Z }
+					,{ "AID",curActorID }
 				}));
 
 			}
 		}
 		//TT
-		//w_data["zone"].emplace_back(json::object({ { "n","safe" },{ "X" , safe_zone.X },{ "Y",safe_zone.Y },{ "Z",safe_zone.Z },{ "R",safe_Radius },{"NumAlivePlayers",NumAlivePlayers } }));
-		//w_data["zone"].emplace_back(json::object({ { "n","poison" },{ "X" , poison_zone.X },{ "Y",poison_zone.Y },{ "Z",poison_zone.Z },{ "R",poison_Radius } }));
-		//w_data["zone"].emplace_back(json::object({ { "n","red"},{"X" , red_zone.X },{"Y",red_zone.Y},{ "Z",red_zone.Z },{"R",red_Radius } }));
+
 		Vector3 povRotation = m_kReader->readVec(m_localPlayerCamerManager + 0x42C, PROTO_NORMAL_READ);
 		w_data["camera"].emplace_back(json::object({ { "n","Rotation"},{"X" , povRotation.X },{"Y",povRotation.Y},{ "Z",povRotation.Z } }));
 		Vector3 povLocation = m_kReader->readVec(m_localPlayerCamerManager + 0x420, PROTO_NORMAL_READ);
-		w_data["camera"].emplace_back(json::object({ { "n","Location" },{ "X" , povLocation.X },{ "Y",povLocation.Y },{ "Z",povLocation.Z }}));
+		w_data["camera"].emplace_back(json::object({ { "n","Location" },{ "X" , povLocation.X },{ "Y",povLocation.Y },{ "Z",povLocation.Z } }));
 		float Fov = m_kReader->readType<float>(m_localPlayerCamerManager + 0x438, PROTO_NORMAL_READ);
 		w_data["camera"].emplace_back(json::object({ { "n","Fov" },{ "X",Fov },{ "Y",0 },{ "Z",0 } }));
 
@@ -231,7 +229,7 @@ private:
 		m_UWorld = m_kReader->readType<int64_t>(m_kReader->getPUBase() + 0x37E5988, PROTO_NORMAL_READ);
 		m_gameInstance = m_kReader->readType<int64_t>(m_UWorld + 0x140, PROTO_NORMAL_READ);
 		m_ULocalPlayer = m_kReader->readType<int64_t>(m_gameInstance + 0x38, PROTO_NORMAL_READ);
-		m_localPlayer = m_kReader->readType<int64_t>(m_ULocalPlayer+0x0, PROTO_NORMAL_READ);
+		m_localPlayer = m_kReader->readType<int64_t>(m_ULocalPlayer + 0x0, PROTO_NORMAL_READ);
 		m_viewportclient = m_kReader->readType<int64_t>(m_localPlayer + 0x58, PROTO_NORMAL_READ);
 		m_localPawn = m_kReader->readType<int64_t>(m_localPlayer + 0x3A8, PROTO_NORMAL_READ);
 		m_localPlayerState = m_kReader->readType<int64_t>(m_localPawn + 0x03C0, PROTO_NORMAL_READ);
@@ -242,26 +240,12 @@ private:
 		//TT
 		m_localPlayerControl = m_kReader->readType<int64_t>(m_localPlayer + 0x30, PROTO_NORMAL_READ);
 		m_localPlayerCamerManager = m_kReader->readType<int64_t>(m_localPlayerControl + 0x438, PROTO_NORMAL_READ);
-		m_localPlayerCamerCache = m_kReader->readType<int64_t>(m_localPlayerCamerManager + 0x410, PROTO_NORMAL_READ);
-		Pov = m_kReader->readType<int64_t>(m_localPlayerCamerManager + 0x10 , PROTO_NORMAL_READ);
 
 
 		ATslGameState = m_kReader->readType<int64_t>(m_PWorld + 0x00F8, PROTO_NORMAL_READ);
-		//safe_zone.X; m_kReader->readType<float>(ATslGameState + 0x0440, PROTO_NORMAL_READ);
-		//safe_zone.Y; m_kReader->readType<float>(ATslGameState + 0x0444, PROTO_NORMAL_READ);
-		//safe_zone.Z; m_kReader->readType<float>(ATslGameState + 0x0448, PROTO_NORMAL_READ);
-		//safe_Radius = m_kReader->readType<float>(ATslGameState + 0x044C, PROTO_NORMAL_READ);
-		//NumAlivePlayers =  m_kReader->readType<float>(ATslGameState + 0x0430, PROTO_NORMAL_READ);
-		//poison_zone; m_kReader->readType<float>(ATslGameState + 0x0450, PROTO_NORMAL_READ);
-		//poison_Radius = m_kReader->readType<float>(ATslGameState + 0x045C, PROTO_NORMAL_READ);
-		//red_zone; m_kReader->readType<float>(ATslGameState + 0x0460, PROTO_NORMAL_READ);
-		//red_Radius = m_kReader->readType<float>(ATslGameState + 0x046C, PROTO_NORMAL_READ);
-
 		m_localPlayerPosition = m_kReader->readVec(m_localPlayer + 0x70, PROTO_NORMAL_READ);
 		m_localPlayerBasePointer = m_kReader->readType<int64_t>(m_localPlayer, PROTO_NORMAL_READ);
-
 		m_localTeam = m_kReader->readType<int32_t>(m_localPlayerState + 0x0444, PROTO_NORMAL_READ);
-
 		m_AActorPtr = m_kReader->readType<int64_t>(m_ULevel + 0xA0, PROTO_NORMAL_READ);
 	}
 
@@ -295,7 +279,7 @@ private:
 	int64_t m_localPlayerCamerCache;
 	int64_t Pov;
 
-		int64_t ATslGameState;
+	int64_t ATslGameState;
 	Vector3 safe_zone;
 	float safe_Radius;
 	Vector3 poison_zone;

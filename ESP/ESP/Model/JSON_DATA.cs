@@ -32,10 +32,13 @@ namespace CPUZ.Model
         public float ry { get; set; }
         public float rz { get; set; }
 
+
     }
 
     public class Players
     {
+        public string AName { get; set; }
+        public int AID { get; set; }
         public int id { get; set; }
         public float health { get; set; }
 
@@ -67,7 +70,7 @@ namespace CPUZ.Model
 
     public class Zone
     {
-        public float r { get; set; }
+        public string r { get; set; }
         public float x { get; set; }
         public float y { get; set; }
     }

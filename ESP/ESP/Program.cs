@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Device;
+using System.Threading;
 
 namespace CPUZ
 {
@@ -16,6 +17,12 @@ namespace CPUZ
         /// 
         /// 
         private static mainFrom _mainForm;
+
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
+        [DllImport("user32.dll")]
+        static extern byte MapVirtualKey(byte wCode, int wMap);
+
         [STAThread]
         static void Main()
         {
@@ -27,10 +34,16 @@ namespace CPUZ
             HotKeyManager.RegisterHotKey(Keys.F1, KeyModifiers.Alt);
             HotKeyManager.HotKeyPressed += HotKeyManager_HotKeyPressed;
 
+            //HotKeyManager.RegisterHotKey(Keys.Space, 0);
+            //HotKeyManager.HotKeyPressed += HotKeyManager_HotKeyPressed2;
 
+            
             _mainForm = new mainFrom();
             Application.Run(_mainForm);
-
+            Application.ThreadExit += (a, b) =>
+            {
+                KReader.Close();
+            };
         }
 
 
@@ -38,14 +51,31 @@ namespace CPUZ
 
         static void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e)
         {
-            if (_mainForm.Visible)
+            if (e.Key == Keys.F1 && e.Modifiers == KeyModifiers.Alt)
+                if (_mainForm.Visible)
+                {
+                    _mainForm.Hide();
+                }
+                else
+                {
+                    _mainForm.Show();
+
+                }
+        }
+        static void HotKeyManager_HotKeyPressed2(object sender, HotKeyEventArgs e)
+        {
+
+            if (Setting.一键大跳 && e.Key == Keys.Space)
             {
-                _mainForm.Hide();
-            }
-            else
-            {
-                _mainForm.Show();
+                //SendKeys.SendWait(" ");
+                //keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//空格　
+                //Thread.Sleep(100);
+                //keybd_event(67, MapVirtualKey(67, 0), 0, 0); //C
+                //keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//放開 空格
+                //keybd_event(67, MapVirtualKey(67, 0), 0x2, 0);//放開C　
+
             }
         }
+        
     }
 }

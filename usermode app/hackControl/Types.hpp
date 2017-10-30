@@ -25,10 +25,6 @@ enum PROTO_MESSAGE {
 	PROTO_GET_BASEADDR = 1
 };
 
-
-
-
-
 struct Vector3
 {
 	float X;
