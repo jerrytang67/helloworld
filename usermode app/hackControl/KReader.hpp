@@ -10,7 +10,7 @@ class KReader
 public:
 	KReader() : m_hDriver(0), m_PUBase(0)
 	{
-		m_hDriver = CreateFileA("\\\\.\\lolClientBase", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
+		m_hDriver = CreateFileA("\\\\.\\{todo:writeyourowninterfacehere}", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
 		if (!m_hDriver)
 		{
 			throw std::runtime_error("Could not open the driver handle!");
