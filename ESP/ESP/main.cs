@@ -104,6 +104,14 @@ namespace CPUZ
             {
                 materialLabel1.Text = "无数据";
             }
+            if (KReader.m_PUBase == 0)
+            {
+                materialLabel2.Text = "驱动不正常";
+            }
+            else
+            {
+                materialLabel2.Text = KReader.m_PUBase.ToString();
+            }
         }
 
         private void chkWebMap_CheckedChanged(object sender, EventArgs e)

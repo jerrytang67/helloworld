@@ -84,7 +84,7 @@ namespace CPUZ
                     {
                         json_data = DoGame.getGameDate();
 
-                        if (json_data != null&& json_data.players.Count>0)
+                        if (json_data != null && json_data.players.Count > 0)
                         {
                             mainFrom.STATE = true;
                             device.BeginDraw();
@@ -285,10 +285,6 @@ namespace CPUZ
                             // DRAW END
                             device.EndDraw();
 
-                            #region Web端
-
-
-                            #endregion
                         }
                         else
                         {
@@ -303,16 +299,20 @@ namespace CPUZ
                     Thread.Sleep(1000 / 60);
                 }
             });
+
+            dxthread.IsBackground = true;
+            dxthread.Start();
+
+            #region Web端     
             var webThread = new Thread(() =>
             {
                 while (true)
                 {
-                    if (Setting.Web端 && json_data.players.Count > 0)
+                    using (var webClient = new WebClient())
                     {
-                        try
+                        if (Setting.Web端 && json_data.players.Count > 0 && !webClient.IsBusy)
                         {
-
-                            using (var webClient = new WebClient())
+                            try
                             {
                                 // 指定 WebClient 編碼
                                 webClient.Encoding = Encoding.UTF8;
@@ -323,22 +323,23 @@ namespace CPUZ
                                 // 執行 PUT 動作
                                 var result = webClient.UploadString("http://127.0.0.1:3000/api/5", "PUT", JsonConvert.SerializeObject(json_data));
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            continue;
+                            catch (Exception e)
+                            {
+                                continue;
+                            }
+
                         }
                     }
                     Thread.Sleep(200);
                 }
             });
 
-            dxthread.IsBackground = true;
-            dxthread.Start();
             webThread.IsBackground = true;
             webThread.Start();
+            #endregion
 
-            var marg = new Win32.Margins{Left = 0,Top = 0,Right = this.Width,Bottom = this.Height};
+
+            var marg = new Win32.Margins { Left = 0, Top = 0, Right = this.Width, Bottom = this.Height };
             Win32.DwmExtendFrameIntoClientArea(this.Handle, ref marg);
         }
 

@@ -13,7 +13,8 @@ namespace CPUZ
         public static List<String> vehicleGNameVec = new List<string> { "Uaz", "Buggy", "Dacia", "ABP_Motorbike", "BP_Motorbike", "Boat_PG117" };
         public static List<String> DropName = new List<string> { "DroppedItemGroup", "DroppedItemInteractionComponent" };
 
-        public static Dictionary<String, string> dropGNameMap = new Dictionary<string, string>
+        //地图需要标记物品列表
+        public static Dictionary<String, string> careItemList = new Dictionary<string, string>
         {
             {"Item_Head_G_01_Lv3_C", "Helm3"},
             {"Item_Head_G_01_Lv3_", "Helm3"},
@@ -45,7 +46,10 @@ namespace CPUZ
 
         static DoGame()
         {
-            baseAdd = KReader.readPuBase();
+            while (baseAdd == 0)
+            {
+                baseAdd = KReader.readPuBase();
+            }
         }
         static bool IsDropGroup(string name)
         {
@@ -62,7 +66,7 @@ namespace CPUZ
 
         static string IsDropItem(string name)
         {
-            foreach (var g in dropGNameMap)
+            foreach (var g in careItemList)
             {
                 if (name.IndexOf(g.Key, StringComparison.Ordinal) > -1)
                 {
@@ -253,13 +257,6 @@ namespace CPUZ
             }
             return json;
 
-
-
-            //80472,80468,80464,,Bug
-            //81001,BP_
-            //81523 UAZ
-            //80376 BOA
-            //80829 DAZ
         }
 
     }

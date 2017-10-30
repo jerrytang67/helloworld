@@ -12,10 +12,8 @@ namespace CPUZ
     public struct ReadStruct
     {
         public static readonly int Size = Marshal.SizeOf(typeof(ReadStruct));
-
         [MarshalAs(UnmanagedType.I8)]
         public ulong UserBufferAdress;
-
         [MarshalAs(UnmanagedType.I8)]
         public ulong GameAddressOffset;
         [MarshalAs(UnmanagedType.I8)]
@@ -39,6 +37,9 @@ namespace CPUZ
     public unsafe static class KReader
     {
         public static ulong m_PUBase = 0;
+
+        private const string DeviceName = "\\\\.\\lolClientBase";
+
 
         const uint GENERIC_READ = 0x80000000;
         const int GENERIC_WRITE = 0x40000000;
@@ -113,7 +114,7 @@ namespace CPUZ
             // open the existing file for reading       
             handle = CreateFile
             (
-                "\\\\.\\lolClientBase",
+                DeviceName,
                 GENERIC_READ | GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 0,

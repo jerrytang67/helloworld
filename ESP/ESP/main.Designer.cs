@@ -32,6 +32,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(mainFrom));
             this.materialTabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
+            this.chkWebMap = new MaterialSkin.Controls.MaterialCheckBox();
             this.chkRadar = new MaterialSkin.Controls.MaterialCheckBox();
             this.chkLine = new MaterialSkin.Controls.MaterialCheckBox();
             this.chkHealth = new MaterialSkin.Controls.MaterialCheckBox();
@@ -43,7 +45,6 @@
             this.chkJump = new MaterialSkin.Controls.MaterialCheckBox();
             this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.chkWebMap = new MaterialSkin.Controls.MaterialCheckBox();
             this.materialTabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.SuspendLayout();
@@ -62,6 +63,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.materialLabel2);
             this.tabPage1.Controls.Add(this.chkWebMap);
             this.tabPage1.Controls.Add(this.chkRadar);
             this.tabPage1.Controls.Add(this.chkLine);
@@ -75,6 +77,36 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // materialLabel2
+            // 
+            this.materialLabel2.AutoSize = true;
+            this.materialLabel2.Depth = 0;
+            this.materialLabel2.Font = new System.Drawing.Font("Roboto", 11F);
+            this.materialLabel2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialLabel2.Location = new System.Drawing.Point(149, 198);
+            this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel2.Name = "materialLabel2";
+            this.materialLabel2.Size = new System.Drawing.Size(64, 18);
+            this.materialLabel2.TabIndex = 6;
+            this.materialLabel2.Text = "pubbase";
+            // 
+            // chkWebMap
+            // 
+            this.chkWebMap.AutoSize = true;
+            this.chkWebMap.Depth = 0;
+            this.chkWebMap.Font = new System.Drawing.Font("Roboto", 10F);
+            this.chkWebMap.Location = new System.Drawing.Point(196, 12);
+            this.chkWebMap.Margin = new System.Windows.Forms.Padding(0);
+            this.chkWebMap.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkWebMap.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkWebMap.Name = "chkWebMap";
+            this.chkWebMap.Ripple = true;
+            this.chkWebMap.Size = new System.Drawing.Size(87, 30);
+            this.chkWebMap.TabIndex = 5;
+            this.chkWebMap.Text = "Web地图";
+            this.chkWebMap.UseVisualStyleBackColor = true;
+            this.chkWebMap.CheckedChanged += new System.EventHandler(this.chkWebMap_CheckedChanged);
             // 
             // chkRadar
             // 
@@ -218,7 +250,7 @@
             this.materialLabel1.Depth = 0;
             this.materialLabel1.Font = new System.Drawing.Font("Roboto", 11F);
             this.materialLabel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.materialLabel1.Location = new System.Drawing.Point(237, 34);
+            this.materialLabel1.Location = new System.Drawing.Point(233, 36);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
             this.materialLabel1.Size = new System.Drawing.Size(56, 18);
@@ -230,23 +262,6 @@
             this.timer1.Enabled = true;
             this.timer1.Interval = 500;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // chkWebMap
-            // 
-            this.chkWebMap.AutoSize = true;
-            this.chkWebMap.Depth = 0;
-            this.chkWebMap.Font = new System.Drawing.Font("Roboto", 10F);
-            this.chkWebMap.Location = new System.Drawing.Point(196, 12);
-            this.chkWebMap.Margin = new System.Windows.Forms.Padding(0);
-            this.chkWebMap.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.chkWebMap.MouseState = MaterialSkin.MouseState.HOVER;
-            this.chkWebMap.Name = "chkWebMap";
-            this.chkWebMap.Ripple = true;
-            this.chkWebMap.Size = new System.Drawing.Size(87, 30);
-            this.chkWebMap.TabIndex = 5;
-            this.chkWebMap.Text = "Web地图";
-            this.chkWebMap.UseVisualStyleBackColor = true;
-            this.chkWebMap.CheckedChanged += new System.EventHandler(this.chkWebMap_CheckedChanged);
             // 
             // mainFrom
             // 
@@ -289,5 +304,6 @@
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private System.Windows.Forms.Timer timer1;
         private MaterialSkin.Controls.MaterialCheckBox chkWebMap;
+        private MaterialSkin.Controls.MaterialLabel materialLabel2;
     }
 }
