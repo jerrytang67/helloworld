@@ -38,8 +38,8 @@ namespace CPUZ
     {
         public static ulong m_PUBase = 0;
 
-        private const string DeviceName = "\\\\.\\lolClientBase";
-
+        //private const string DeviceName = "\\\\.\\putyourdNameHere";
+        private const string DeviceName = "\\\\.\\putyourdNameHere";
 
         const uint GENERIC_READ = 0x80000000;
         const int GENERIC_WRITE = 0x40000000;
