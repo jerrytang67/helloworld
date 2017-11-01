@@ -32,6 +32,10 @@ namespace CPUZ
 
 
             HotKeyManager.RegisterHotKey(Keys.F1, KeyModifiers.Alt);
+            HotKeyManager.RegisterHotKey(Keys.NumPad7, KeyModifiers.Alt);
+            HotKeyManager.RegisterHotKey(Keys.NumPad8, KeyModifiers.Alt);
+            HotKeyManager.RegisterHotKey(Keys.NumPad9, KeyModifiers.Alt);
+
             HotKeyManager.HotKeyPressed += HotKeyManager_HotKeyPressed;
 
             //HotKeyManager.RegisterHotKey(Keys.Space, 0);
@@ -61,6 +65,18 @@ namespace CPUZ
                     _mainForm.Show();
 
                 }
+            if (e.Key == Keys.NumPad7 && e.Modifiers == KeyModifiers.Alt)
+            {
+                Setting.车辆显示 = !Setting.车辆显示;
+            }
+            if (e.Key == Keys.NumPad8 && e.Modifiers == KeyModifiers.Alt)
+            {
+                Setting.物品显示 = !Setting.物品显示;
+            }
+            if (e.Key == Keys.NumPad9 && e.Modifiers == KeyModifiers.Alt)
+            {
+                Setting.雷达 = !Setting.雷达;
+            }
         }
         static void HotKeyManager_HotKeyPressed2(object sender, HotKeyEventArgs e)
         {

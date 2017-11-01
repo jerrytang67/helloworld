@@ -112,6 +112,10 @@ namespace CPUZ
             {
                 materialLabel2.Text = KReader.m_PUBase.ToString();
             }
+            chkRadar.Checked = Setting.雷达;
+            chk1.Checked = Setting.车辆显示;
+            chk2.Checked = Setting.物品显示;
+
         }
 
         private void chkWebMap_CheckedChanged(object sender, EventArgs e)
