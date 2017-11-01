@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>CPUZ</RootNamespace>
     <AssemblyName>CPUZ</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PublishUrl>publish\</PublishUrl>
@@ -26,6 +26,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -105,10 +106,10 @@
     </Compile>
     <Compile Include="Model\APlayerCameraManager.cs" />
     <Compile Include="Model\JSON_DATA.cs" />
-    <Compile Include="Model\Player.cs" />
     <Compile Include="Model\UEClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PUBG-SDK.cs" />
     <Compile Include="Setting.cs" />
     <EmbeddedResource Include="CPUZ.resx">
       <DependentUpon>CPUZ.cs</DependentUpon>

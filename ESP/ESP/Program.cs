@@ -67,13 +67,11 @@ namespace CPUZ
 
             if (Setting.一键大跳 && e.Key == Keys.Space)
             {
-                //SendKeys.SendWait(" ");
-                //keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//空格　
-                //Thread.Sleep(100);
-                //keybd_event(67, MapVirtualKey(67, 0), 0, 0); //C
-                //keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//放開 空格
-                //keybd_event(67, MapVirtualKey(67, 0), 0x2, 0);//放開C　
-
+                keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//空格　
+                Thread.Sleep(100);
+                keybd_event(67, MapVirtualKey(67, 0), 0, 0); //C
+                keybd_event(32, MapVirtualKey(32, 0), 0x2, 0);//放開 空格
+                keybd_event(67, MapVirtualKey(67, 0), 0x2, 0);//放開C　
             }
         }
         

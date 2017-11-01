@@ -54,6 +54,8 @@ namespace CPUZ.Model
         public float rx { get; set; }
         public float ry { get; set; }
         public float rz { get; set; }
+
+        public ulong mesh { get; set; }
     }
 
     public class Vehicle

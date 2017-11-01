@@ -133,6 +133,28 @@ namespace CPUZ
             return baseAdd;
         }
 
+
+        public static FTransform readFtransform(ulong w_read, int sdf = 0)
+        {
+            FTransform writeMe;
+            ReadStruct rStruct = new ReadStruct()
+            {
+                UserBufferAdress = (ulong)&writeMe,
+                GameAddressOffset = (ulong)w_read,
+                ReadSize = (ulong)Marshal.SizeOf(typeof(FTransform)),
+                UserPID = CommonUtil.GetCurrentProcessId(),
+                GamePID = 0,
+                WriteOrRead = true,
+                ProtocolMsg = 0,
+                WriteOrRead2 = true,
+                ProtocolMsg2 = 0
+            };
+            WriteFile(handle, &rStruct, ReadStruct.Size, null, 0);
+
+            return writeMe;
+        }
+
+
         public static Vector3 readVec(ulong w_read, int sdf = 0)
         {
             Vector3 writeMe;
@@ -174,6 +196,27 @@ namespace CPUZ
             return writeMe;
         }
 
+
+        public static Pov readPov(ulong w_read)
+        {
+            Pov writeMe;
+            ReadStruct rStruct = new ReadStruct()
+            {
+                UserBufferAdress = (ulong)&writeMe,
+                GameAddressOffset = (ulong)w_read,
+                ReadSize = (ulong)Marshal.SizeOf(typeof(Int32)),
+                UserPID = CommonUtil.GetCurrentProcessId(),
+                GamePID = 0,
+                WriteOrRead = true,
+                ProtocolMsg = 0,
+                WriteOrRead2 = true,
+                ProtocolMsg2 = 0
+            };
+
+
+            WriteFile(handle, &rStruct, ReadStruct.Size, null, 0);
+            return writeMe;
+        }
 
         public static Int32 readInt32(ulong w_read, int sdf = 0)
         {

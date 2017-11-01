@@ -14,6 +14,8 @@ using SharpDX.Mathematics.Interop;
 using Vector2 = CPUZ.Model.Vector2;
 using System.Linq;
 using System.Text;
+using SharpDX.DirectWrite;
+using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
 using Vector3 = CPUZ.Model.Vector3;
 
 namespace CPUZ
@@ -92,34 +94,37 @@ namespace CPUZ
 
                             #region RADAR
 
-                            int radarX = 20;
-                            int radarY = 140;
-                            int radarSize = 400;
-                            int radarBorder = 1;
-                            Vector2 centerpoint = new Vector2(radarX + radarSize / 2, radarY + radarSize / 2);
+                            int radarSize = 600;
+                            Vector2 centerpoint = new Vector2(2356, 1210);
 
-
-                            // TODO: INTEGRATE INTO MINIMAP
                             if (Setting.雷达)
                             {
-                                var radarOuterRectangle = new RawRectangleF(radarX, radarY, radarX + radarSize,
-                                    radarY + radarSize);
-                                var radarRectangle = new RawRectangleF(radarX + radarBorder, radarY + radarBorder,
-                                    radarX + radarSize - radarBorder, radarY + radarSize - radarBorder);
+                                Ellipse el3 = new Ellipse(new RawVector2(2356, 1210), 1, 1);
+                                device.DrawEllipse(el3, brushRed);
+                                device.FillEllipse(el3, brushRed);
 
-                                var radarCenterRectangle = new RoundedRectangle()
-                                {
-                                    RadiusX = 4,
-                                    RadiusY = 4,
-                                    Rect = new RawRectangleF(centerpoint.X, centerpoint.Y, centerpoint.X + 4,
-                                        centerpoint.Y + 4)
-                                };
+                                // TODO: INTEGRATE INTO MINIMAP
+                                //if (Setting.雷达)
+                                //{
+                                //    var radarOuterRectangle = new RawRectangleF(radarX, radarY, radarX + radarSize,
+                                //        radarY + radarSize);
+                                //    var radarRectangle = new RawRectangleF(radarX + radarBorder, radarY + radarBorder,
+                                //        radarX + radarSize - radarBorder, radarY + radarSize - radarBorder);
 
-                                device.FillRectangle(radarRectangle, brushBlack);
-                                device.DrawRectangle(radarRectangle, brushWhite);
+                                //    var radarCenterRectangle = new RoundedRectangle()
+                                //    {
+                                //        RadiusX = 4,
+                                //        RadiusY = 4,
+                                //        Rect = new RawRectangleF(centerpoint.X, centerpoint.Y, centerpoint.X + 4,
+                                //            centerpoint.Y + 4)
+                                //    };
 
-                                device.FillRoundedRectangle(radarCenterRectangle, brushGreen);
+                                //    device.FillRectangle(radarRectangle, brushBlack);
+                                //    device.DrawRectangle(radarRectangle, brushWhite);
 
+                                //    device.FillRoundedRectangle(radarCenterRectangle, brushGreen);
+
+                                //}
                             }
 
                             #endregion
@@ -132,7 +137,7 @@ namespace CPUZ
                                 Z = json_data.camera[1].Z
                             };
 
-                            var PlayerCameraManager = new APlayerCameraManager
+                            var PlayerCameraManager = new PlayerCameraManager
                             {
                                 CameraCache = new FCameraCacheEntry
                                 {
@@ -164,13 +169,14 @@ namespace CPUZ
                                     var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
                                     var vecRelativePos = vecLocalLocation - vecActorLocation;
                                     var lDeltaInMeters = vecRelativePos.Length / 100;
+                                    if (lDeltaInMeters <= 500)
+                                    {
+                                        Vector2 screenlocation;
+                                        WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
 
-
-                                    Vector2 screenlocation;
-                                    WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
-
-                                    DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
-                                        (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
+                                        DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
+                                            (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
+                                    }
 
                                 }
                             }
@@ -192,7 +198,7 @@ namespace CPUZ
                                     WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
 
                                     DrawText($"{v.n}", (int)screenlocation.X,
-                                        (int)screenlocation.Y, brushPurple, fontFactory, fontESP, device);
+                                        (int)screenlocation.Y, brushWhite, fontFactory, fontESP, device);
 
                                 }
                             }
@@ -212,6 +218,11 @@ namespace CPUZ
                                     //距离
                                     var lDeltaInMeters = vecRelativePos.Length / 100.0f;
 
+
+                                    if (lDeltaInMeters >= 750)
+                                    {
+                                        continue;
+                                    }
                                     #region 线条
                                     if (Setting.线条)
                                         if (lDeltaInMeters > 3)
@@ -228,7 +239,7 @@ namespace CPUZ
                                                 WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
 
                                                 device.DrawLine(new RawVector2(2560 / 2, 1440),
-                                                    new RawVector2(screenlocation.X, screenlocation.Y), brushWhite);
+                                                    new RawVector2(screenlocation.X, screenlocation.Y), lDeltaInMeters <= 100 ? brushRed : brushWhite);
                                             }
                                     #endregion
 
@@ -256,27 +267,32 @@ namespace CPUZ
                                         }
 
                                     #endregion
-
+                                    
                                     #region Radar
                                     if (Setting.雷达)
                                     {
-                                        if (lDeltaInMeters <= radarSize / 2 /*DISTANCE FROM CENTER TO EDGE*/)
+                                        var loclalLocation = new Vector3 { X = playerList[0].x, Y = playerList[0].y, Z = playerList[0].z };
+                                        var currentActorLocation = new Vector3 { X = player.x, Y = player.y, Z = player.z };
+
+                                        var relativePos = loclalLocation - currentActorLocation;
+
+                                        if (relativePos.Length / 100.0f <= radarSize / 2 /*DISTANCE FROM CENTER TO EDGE*/)
                                         {
-                                            Vector2 screenpos = centerpoint + vecRelativePos.To2D() / 100;
+                                            Vector2 screenpos = centerpoint - relativePos.To2D() / 118f;
 
-                                            var radarPlayerRectangle = new RoundedRectangle()
-                                            {
-                                                RadiusX = 4,
-                                                RadiusY = 4,
-                                                Rect = new RawRectangleF(screenpos.X, screenpos.Y, screenpos.X + 5,
-                                                    screenpos.Y + 5)
-                                            };
-
-                                            // DRAW ENEMY
-                                            device.FillRoundedRectangle(radarPlayerRectangle, brushRed);
+                                            Ellipse el22 = new Ellipse(new RawVector2(screenpos.X, screenpos.Y), 3, 3);
+                                            device.DrawEllipse(el22, brushRed);
+                                            device.FillEllipse(el22, brushRed);
                                         }
                                     }
+                                    #endregion
 
+                                    #region 骨骼
+
+                                    if (lDeltaInMeters < 100)
+                                    {
+                                        //DrawSkeleton(player.mesh, PlayerCameraManager, device, brushRed, fontESP);
+                                    }
                                     #endregion
                                 }
 
@@ -298,9 +314,10 @@ namespace CPUZ
                     }
                     Thread.Sleep(1000 / 60);
                 }
-            });
-
-            dxthread.IsBackground = true;
+            })
+            {
+                IsBackground = true
+            };
             dxthread.Start();
 
             #region Web端     
@@ -343,7 +360,82 @@ namespace CPUZ
             Win32.DwmExtendFrameIntoClientArea(this.Handle, ref marg);
         }
 
-        private bool WorldToScreen(Vector3 WorldLocation, APlayerCameraManager CameraManager, out Vector2 Screenlocation)
+
+
+        private void DrawSkeleton(ulong mesh, PlayerCameraManager CameraManager, WindowRenderTarget device, Brush brush, TextFormat font)
+        {
+            Bones[] l = { Bones.pelvis /*,Bones.forehead, Bones.Head,Bones.neck_01,Bones.hand_l,Bones.hand_r,Bones.foot_l,Bones.foot_r*/};
+            foreach (var b in l)
+            {
+                Vector3 pos = DoGame.GetBoneWithRotation(mesh, (Bones)b);
+                Vector2 h1;
+                WorldToScreen(pos, CameraManager, out h1);
+                var radarPlayerRectangle = new RoundedRectangle()
+                {
+                    RadiusX = 4,
+                    RadiusY = 4,
+                    Rect = new RawRectangleF(h1.X, h1.Y, h1.X + 4,
+                        h1.Y + 4)
+                };
+                //DrawText(b.ToString(), (int)h1.X + 4,
+                //    (int)(int)h1.Y + 4,
+                //    new SolidColorBrush(device, RawColorFromColor(Color.White))
+                //    , fontFactory,
+                //    fontESP,
+                //    device);
+
+                device.FillRoundedRectangle(radarPlayerRectangle, brush);
+
+            }
+
+            //Vector3 neckpos = DoGame.GetBoneWithRotation(mesh, Bones.neck_01);
+            //Vector3 pelvispos = DoGame.GetBoneWithRotation(mesh, Bones.pelvis);
+            //Vector3 previous = new Vector3(0, 0, 0);
+            //Vector3 current;
+            //Vector2 p1, c1;
+            //foreach (var a in DoGame.skeleton)
+            //{
+            //    previous = new Vector3(0, 0, 0);
+            //    foreach (var bone in a)
+            //    {
+            //        current = bone == Bones.neck_01 ? neckpos : (bone == Bones.pelvis ? pelvispos : DoGame.GetBoneWithRotation(mesh, bone));
+            //        current = DoGame.GetBoneWithRotation(mesh, bone);
+            //        if (previous.X == 0)
+            //        {
+            //            previous = current;
+            //            continue;
+            //        }
+            //        WorldToScreen(previous, CameraManager, out p1);
+            //        WorldToScreen(current, CameraManager, out c1);
+
+            //        var radarPlayerRectangle = new RoundedRectangle()
+            //        {
+            //            RadiusX = 4,
+            //            RadiusY = 4,
+            //            Rect = new RawRectangleF(c1.X, c1.Y, c1.X + 2,
+            //                c1.Y + 2)
+            //        };
+            //        var fontFactory = new SharpDX.DirectWrite.Factory();
+            //        var fontESP = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 8);
+
+            //        DrawText(bone.ToString(), (int)c1.X + 4,
+            //            (int)(int)c1.Y + 4,
+            //            new SolidColorBrush(device, RawColorFromColor(Color.White))
+            //            , fontFactory,
+            //            fontESP,
+            //            device);
+
+            //        DRAW ENEMY
+            //        device.FillRoundedRectangle(radarPlayerRectangle,
+            //            new SolidColorBrush(device, RawColorFromColor(Color.White)));
+
+            //        DrawLine(p1.X, p1.Y, c1.X, c1.Y, device, new SolidColorBrush(device, RawColorFromColor(Color.White)));
+            //        previous = current;
+            //    }
+            //}
+        }
+
+        private bool WorldToScreen(Vector3 WorldLocation, PlayerCameraManager CameraManager, out Vector2 Screenlocation)
         {
             Screenlocation = new Vector2(0, 0);
 
@@ -373,8 +465,20 @@ namespace CPUZ
             new SharpDX.DirectWrite.TextLayout(factory, szText, font, float.MaxValue, float.MaxValue);
 
 
+        private void DrawLine(float x, float y, float xx, float yy, WindowRenderTarget device, Brush brush)
+        {
+            RawVector2[] dLine = new RawVector2[2];
 
-        public void DrawLines(RawVector2[] point0, WindowRenderTarget device, Brush brush)
+            dLine[0].X = x;
+            dLine[0].Y = y;
+
+            dLine[1].X = xx;
+            dLine[1].Y = yy;
+            DrawLines(dLine, device, brush);
+
+        }
+
+        private void DrawLines(RawVector2[] point0, WindowRenderTarget device, Brush brush)
         {
             if (point0.Length < 2)
                 return;

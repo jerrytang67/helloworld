@@ -1,6 +1,6 @@
 ﻿namespace CPUZ.Model
 {
-    public class APlayerCameraManager
+    public class PlayerCameraManager
     {
         public FCameraCacheEntry CameraCache { get; set; }
     }

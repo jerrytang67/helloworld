@@ -4,17 +4,21 @@ using SharpDX;
 
 namespace CPUZ.Model
 {
-    public class FTransform
+
+    public struct FTransform
     {
         public Vector4 Rotation;
         public Vector3 Translation;
+        public char UnknownData00;
         public Vector3 Scale3D;
-        public FTransform(Vector4 rot, Vector3 translation, Vector3 scale)
-        {
-            Rotation = rot;
-            Translation = translation;
-            Scale3D = scale;
-        }
+        public char UnknownData01;
+        
+        //public FTransform(Vector4 rot, Vector3 translation, Vector3 scale)
+        //{
+        //    Rotation = rot;
+        //    Translation = translation;
+        //    Scale3D = scale;
+        //}
 
         public Matrix ToMatrixWithScale()
         {
