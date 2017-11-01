@@ -151,6 +151,8 @@ namespace CPUZ
     {
         private static List<string> vehicleGNameVec = new List<string> { "Uaz", "Buggy", "Dacia", "ABP_Motorbike", "BP_Motorbike", "Boat_PG117" };
         private static List<string> DropName = new List<string> { "DroppedItemGroup", "DroppedItemInteractionComponent" };
+        private static List<string> AirdropOrDeathdrop = new List<string> { "DeathDropItemPackage", "Carapackage_RedBox_C", "CarePackage", "AircraftCarePackage" };
+
 
         public AActor(ulong address) : base(address)
         {
@@ -168,10 +170,32 @@ namespace CPUZ
         public int DropItemsCount => KReader.readInt32(this.BasePoint + 0x02E0);
         public bool isDropItems => DropName.Any(g => ActorName.IndexOf(g, StringComparison.Ordinal) > -1);
 
+        //空投和死亡盒子
+        public DropItems AItemPackages => new DropItems(KReader.readUlong(this.BasePoint + 0x04D0));
+        public int AItemPackagesCount => KReader.readInt32(this.BasePoint + 0x04D4);
+        public bool isAirdropOrDeathdrop => AirdropOrDeathdrop.Any(g => ActorName.IndexOf(g, StringComparison.Ordinal) > -1);
 
         public bool isPlayer => (this.ActorID == 66943 || this.ActorID == 66948);
         public bool isVehicle => vehicleGNameVec.Any(g => ActorName.IndexOf(g, StringComparison.Ordinal) > -1);
     }
+
+    public class AItemPackages : BaseEntry
+    {
+        private int 位移 = 0x08;
+        public AItemPackages(ulong address) : base(address)
+        {
+
+        }
+        public AItemPackage this[int index] =>
+            new AItemPackage(KReader.readUlong(this.BasePoint + (ulong)(index * 位移)));
+    }
+    public class AItemPackage : BaseEntry
+    {
+        public AItemPackage(ulong address) : base(address)
+        {
+        }
+    }
+
 
     public class DropItems : BaseEntry
     {
@@ -197,7 +221,7 @@ namespace CPUZ
 
         private Vector3 droppedLocationbase => KReader.readVec(this.BasePoint + 0x01E0);
 
-        public Vector3 Loction => droppedLocationbase;
+        public Vector3 Location => droppedLocationbase;
         public Vector3 RelativeLocation;
     }
 

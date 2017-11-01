@@ -169,13 +169,13 @@ namespace CPUZ
                                     var vecActorLocation = new Vector3 { X = v.rx, Y = v.ry, Z = v.rz };
                                     var vecRelativePos = vecLocalLocation - vecActorLocation;
                                     var lDeltaInMeters = vecRelativePos.Length / 100;
-                                    if (lDeltaInMeters <= 500)
+                                    if (lDeltaInMeters <= 400)
                                     {
                                         Vector2 screenlocation;
                                         WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
 
                                         DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
-                                            (int)screenlocation.Y, brushRed, fontFactory, fontESP, device);
+                                            (int)screenlocation.Y, v.v=="Deat"?brushBlack:brushGreen, fontFactory, fontESP, device);
                                     }
 
                                 }

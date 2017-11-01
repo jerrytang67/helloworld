@@ -1,8 +1,7 @@
 var express = require('express')
-var bodyParser = require('body-parser').json();
+var bodyParser = require('body-parser').json({limit: '50mb'});
 var cache = require('memory-cache');
 var app = express();
-
 app.put('/api/:id', bodyParser, function (req, res) {
         cache.put("data", req.body);
         res.status(200).send("ok");

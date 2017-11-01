@@ -61,18 +61,6 @@ namespace CPUZ
                 baseAdd = KReader.readPuBase();
             }
         }
-        static bool IsDropGroup(string name)
-        {
-            foreach (var g in DropName)
-            {
-                if (name.IndexOf(g, StringComparison.Ordinal) > -1)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
 
         static string InCareList(string name)
         {
@@ -85,27 +73,13 @@ namespace CPUZ
             }
             return "";
         }
-
-        static string IsVehicle(string name)
-        {
-            foreach (var g in vehicleGNameVec)
-            {
-                if (name.IndexOf(g, StringComparison.Ordinal) > -1)
-                {
-                    return g;
-                }
-            }
-            return "";
-        }
-
-
+        
         public static FTransform GetBoneWithIndex(ulong mesh, Bones bone)
         {
             var cachedBoneSpaceTransforms = KReader.readUlong(mesh + 0x0958, 0x8);
             return KReader.readFtransform(cachedBoneSpaceTransforms + (ulong)((int)bone * 0x30), 0);
         }
-
-
+        
         public static Vector3 GetBoneWithRotation(ulong mesh, Bones bone)
         {
             var fbone = GetBoneWithIndex(mesh, bone);
@@ -113,8 +87,7 @@ namespace CPUZ
             var matrix = Matrix.Multiply(fbone.ToMatrixWithScale(), componentToWorld.ToMatrixWithScale());
             return new Model.Vector3(matrix.M41, matrix.M42, matrix.M43);
         }
-
-
+        
         public static JSON_DATA getGameDate()
         {
             if (baseAdd == 0)
@@ -138,15 +111,16 @@ namespace CPUZ
                 if (actor.isPlayer)
                 {
                     var playerState = actor.PlayerState;
-                    actorLocation += pWorld.WorldLocation;
+                    var _actorLocation = actorLocation +pWorld.WorldLocation;
+
                     json.players.Add(new Players
                     {
                         //AName = actorGName,
                         //AName = playerState.PlayerName,
                         AID = actorId,
-                        x = actorLocation.X,
-                        y = actorLocation.Y,
-                        z = actorLocation.Z,
+                        x = _actorLocation.X,
+                        y = _actorLocation.Y,
+                        z = _actorLocation.Z,
                         health = actor.Health,
                         id = playerState.PlayerId,
                         rotator = rootComponent.RelativeRotation.Y,
@@ -161,13 +135,13 @@ namespace CPUZ
                 //车辆
                 else if (actor.isVehicle)
                 {
-                    actorLocation += pWorld.WorldLocation;
+                    var _actorLocation = actorLocation +pWorld.WorldLocation;
                     json.vehicles.Add(new Vehicle
                     {
                         v = actorGName.Substring(0, 4),
-                        x = actorLocation.X,
-                        y = actorLocation.Y,
-                        z = actorLocation.Z,
+                        x = _actorLocation.X,
+                        y = _actorLocation.Y,
+                        z = _actorLocation.Z,
                         rx = rootComponent.RelativeLocation.X,
                         ry = rootComponent.RelativeLocation.Y,
                         rz = rootComponent.RelativeLocation.Z,
@@ -185,7 +159,7 @@ namespace CPUZ
                         //var UItemID = UItem.ItemId;
                         var itemName = UItem.ItemName;
                         if (string.IsNullOrEmpty(InCareList(itemName))) continue;
-                        var droppedLocation = aDroppedItem.Loction;
+                        var droppedLocation = aDroppedItem.Location;
                         var relativeLocation = droppedLocation + actorLocation;
                         droppedLocation += actorLocation + pWorld.WorldLocation;
                         //a.Add(itemName);
@@ -198,6 +172,27 @@ namespace CPUZ
                             rx = relativeLocation.X,
                             ry = relativeLocation.Y,
                             rz = relativeLocation.Z
+                        });
+                    }
+                }
+                else if (actor.isAirdropOrDeathdrop)
+                {
+                    var droppedItemArray = actor.AItemPackages;
+                    var droppedItemCount = actor.AItemPackagesCount;
+                    for (var j = 0; j < droppedItemCount; j++)
+                    {
+                        var dropItem = droppedItemArray[j];
+                        var _actorLocation = actorLocation + pWorld.WorldLocation;
+
+                        json.vehicles.Add(new Vehicle
+                        {
+                            v = actor.ActorName.Substring(0, 4),
+                            x = _actorLocation.X,
+                            y = _actorLocation.Y,
+                            z = _actorLocation.Z,
+                            rx = rootComponent.RelativeLocation.X,
+                            ry = rootComponent.RelativeLocation.Y,
+                            rz = rootComponent.RelativeLocation.Z
                         });
                     }
                 }
