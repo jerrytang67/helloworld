@@ -14,3 +14,4 @@ ESP/ESP/obj/
 node_server/node_modules/
 node_server/package-lock.json
 UPSecurityInput/
+ESP/ESP/KReader.cs

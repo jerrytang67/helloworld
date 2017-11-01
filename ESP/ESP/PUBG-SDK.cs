@@ -26,7 +26,6 @@ namespace CPUZ
             getval = KReader.readUlong(BasePoint + 0x0140);
         }
         public UGameInstance OwningGameInstance => new UGameInstance(getval);
-
     }
 
     //class UGameInstance*                               OwningGameInstance;                                       // 0x0140(0x0008) (CPF_ZeroConstructor, CPF_Transient, CPF_IsPlainOldData)

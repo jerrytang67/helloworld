@@ -4,11 +4,11 @@ namespace CPUZ.Model
 {
     public class JSON_DATA
     {
-        public List<Camera> camera { get; set; }
-        public List<Item> items { get; set; }
-        public List<Players> players { get; set; }
-        public List<Vehicle> vehicles { get; set; }
-        public List<Zone> zone { get; set; }
+        public List<Camera> camera { get; set; } = new List<Camera>();
+        public List<Item> items { get; set; } = new List<Item>();
+        public List<Players> players { get; set; } = new List<Players>();
+        public List<Vehicle> vehicles { get; set; } = new List<Vehicle>();
+        public List<Zone> zone { get; set; } = new List<Zone>();
     }
 
     public class Camera

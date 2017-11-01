@@ -8,8 +8,6 @@ namespace CPUZ
 {
     public static class DoGame
     {
-        const int PROTO_NORMAL_READ = 0;
-
         private static ulong baseAdd;
 
         private static List<string> vehicleGNameVec = new List<string> { "Uaz", "Buggy", "Dacia", "ABP_Motorbike", "BP_Motorbike", "Boat_PG117" };
@@ -121,166 +119,98 @@ namespace CPUZ
         {
             if (baseAdd == 0)
                 return null;
-            var json = new JSON_DATA
-            {
-                players = new List<Players>(),
-                camera = new List<Camera>(),
-                vehicles = new List<Vehicle>(),
-                items = new List<Item>(),
-                zone = new List<Zone>()
-            };
-
+            var json = new JSON_DATA();
             var uworld = new UWorld(baseAdd + 0x37E5988);
-            var m_gameInstance = uworld.OwningGameInstance;
-            var m_ULocalPlayer = m_gameInstance.LocalPlayers;
-            var m_localPlayer = m_ULocalPlayer[0];
-            var m_viewportclient = m_localPlayer.ViewportClient;
-            var m_localPawn = m_localPlayer.Pawn;
-            var m_localPlayerState = m_localPawn.PlayerState;
-            var m_PWorld = m_viewportclient.UWorld;
-            var m_ULevel = m_PWorld.PersistentLevel;
-            var m_playerCount = m_ULevel.PlayerCount;
+            var gameInstance = uworld.OwningGameInstance;
+            var localPlayers = gameInstance.LocalPlayers;
+            var localPlayer = localPlayers[0];
+            var viewportClient = localPlayers[0].ViewportClient;
+            var pWorld = viewportClient.UWorld;
 
-            var m_localPlayerControl = m_localPlayer.PlayerController;
-            var m_localPlayerCamerManager = m_localPlayerControl.PlayerCameraManager;
-
-            var ATslGameState = m_PWorld.GameState;
-            //var m_localPlayerPosition = KReader.readVec(m_localPlayer + 0x70, PROTO_NORMAL_READ);
-            //var m_localPlayerBasePointer = KReader.readUlong(m_localPlayer, PROTO_NORMAL_READ);
-            //var m_localTeam = KReader.readUlong(m_localPlayerState + 0x0444, PROTO_NORMAL_READ);
-            var m_AActorPtr = m_ULevel.AActors;
-
-
-            var povRotation = m_localPlayerCamerManager.povRotation;
-            var povLocation = m_localPlayerCamerManager.povLocation;
-            var Fov = m_localPlayerCamerManager.Fov;
-
-
-            //get zone info
-            Vector3 blue = ATslGameState.blue;
-            float blueR = ATslGameState.blueR;
-
-            Vector3 white = ATslGameState.white;
-            float whiteR = ATslGameState.whiteR;
-
-            json.camera.Add(new Camera { n = "Rotation", X = povRotation.X, Y = povRotation.Y, Z = povRotation.Z });
-            json.camera.Add(new Camera { n = "Location", X = povLocation.X, Y = povLocation.Y, Z = povLocation.Z });
-            json.camera.Add(new Camera { n = "Fov", X = Fov, Y = 0, Z = 0 });
-            json.zone.Add(new Zone { r = blueR, x = blue.X, y = blue.Y });
-            json.zone.Add(new Zone { r = whiteR, x = white.X, y = white.Y });
-
-
-
-            for (int i = 0; i < m_playerCount; i++)
+            for (int i = 0; i < pWorld.PersistentLevel.PlayerCount; i++)
             {
-                var curActor = m_AActorPtr[i];
-                var curActorID = curActor.ActorID;
-
-                var actorGName = KReader.getGNameFromId(curActorID);
-
-
+                var actor = pWorld.PersistentLevel.AActors[i];
+                var actorId = actor.ActorID;
+                var actorGName = KReader.getGNameFromId(actorId);
+                var rootComponent = actor.RootComponent;
+                var actorLocation = rootComponent.Location;
                 //玩家
-                if (curActor.isPlayer)
+                if (actor.isPlayer)
                 {
-                    var rootCmpPtr = curActor.RootComponent;
-                    var playerState = curActor.PlayerState;
-                    Vector3 actorLocation = rootCmpPtr.Location;
-
-                    var actorTeam = playerState.TeamNumber;
-
-                    actorLocation += m_PWorld.WorldLocation;
-
-                    var Health = curActor.Health;
-                    ulong mesh = curActor.Mesh.mesh;
-
-
-                    var relativeLocation = rootCmpPtr.RelativeLocation;
-                    var RelativeRotation = rootCmpPtr.RelativeRotation;
-                    var playerId = playerState.PlayerId;
-                    var isInactive = playerState.bIsInactive;
-
+                    var playerState = actor.PlayerState;
+                    actorLocation += pWorld.WorldLocation;
                     json.players.Add(new Players
                     {
                         //AName = actorGName,
                         //AName = playerState.PlayerName,
-                        AID = curActorID,
+                        AID = actorId,
                         x = actorLocation.X,
                         y = actorLocation.Y,
                         z = actorLocation.Z,
-                        health = Health,
-                        id = playerId,
-                        rotator = RelativeRotation.Y,
-                        t = actorTeam,
-                        isInactive = isInactive,
-                        rx = relativeLocation.X,
-                        ry = relativeLocation.Y,
-                        rz = relativeLocation.Z,
-                        mesh = mesh
+                        health = actor.Health,
+                        id = playerState.PlayerId,
+                        rotator = rootComponent.RelativeRotation.Y,
+                        t = playerState.TeamNumber,
+                        isInactive = playerState.bIsInactive,
+                        rx = rootComponent.RelativeLocation.X,
+                        ry = rootComponent.RelativeLocation.Y,
+                        rz = rootComponent.RelativeLocation.Z,
+                        mesh = actor.Mesh.mesh
                     });
                 }
                 //车辆
-                else if (curActor.isVehicle)
+                else if (actor.isVehicle)
                 {
-                    var rootCmpPtr = curActor.RootComponent;
-                    Vector3 actorLocation = rootCmpPtr.Location;
-
-                    actorLocation += m_PWorld.WorldLocation;
-
-                    Vector3 relativeLocation = rootCmpPtr.RelativeLocation;
-
+                    actorLocation += pWorld.WorldLocation;
                     json.vehicles.Add(new Vehicle
                     {
                         v = actorGName.Substring(0, 4),
                         x = actorLocation.X,
                         y = actorLocation.Y,
                         z = actorLocation.Z,
-                        rx = relativeLocation.X,
-                        ry = relativeLocation.Y,
-                        rz = relativeLocation.Z,
+                        rx = rootComponent.RelativeLocation.X,
+                        ry = rootComponent.RelativeLocation.Y,
+                        rz = rootComponent.RelativeLocation.Z,
                     });
                 }
                 //物品
-                else if (curActor.isDropItems)
+                else if (actor.isDropItems)
                 {
-                    var rootCmpPtr = curActor.RootComponent;
-                    Vector3 actorLocation = rootCmpPtr.Location;
-
-
-                    var DroppedItemArray = curActor.DropItems;
-                    var DroppedItemCount = curActor.DropItemsCount;
-
-                    for (int j = 0; j < DroppedItemCount; j++)
+                    var droppedItemArray = actor.DropItems;
+                    var droppedItemCount = actor.DropItemsCount;
+                    for (var j = 0; j < droppedItemCount; j++)
                     {
-                        var ADroppedItem = DroppedItemArray[j];
-                        var UItem = ADroppedItem.UItem;
-                        var UItemID = UItem.ItemId;
+                        var aDroppedItem = droppedItemArray[j];
+                        var UItem = aDroppedItem.UItem;
+                        //var UItemID = UItem.ItemId;
                         var itemName = UItem.ItemName;
-
-                        if (!string.IsNullOrEmpty(InCareList(itemName)))
+                        if (string.IsNullOrEmpty(InCareList(itemName))) continue;
+                        var droppedLocation = aDroppedItem.Loction;
+                        var relativeLocation = droppedLocation + actorLocation;
+                        droppedLocation += actorLocation + pWorld.WorldLocation;
+                        //a.Add(itemName);
+                        json.items.Add(new Item
                         {
-                            Vector3 droppedLocation = ADroppedItem.Loction;
-                            Vector3 relativeLocation = droppedLocation + actorLocation;
-                            droppedLocation += actorLocation + m_PWorld.WorldLocation;
-
-                            //a.Add(itemName);
-                            json.items.Add(new Item
-                            {
-                                n = InCareList(itemName),
-                                x = droppedLocation.X,
-                                y = droppedLocation.Y,
-                                z = droppedLocation.Z,
-                                rx = relativeLocation.X,
-                                ry = relativeLocation.Y,
-                                rz = relativeLocation.Z
-                            });
-                        }
+                            n = InCareList(itemName),
+                            x = droppedLocation.X,
+                            y = droppedLocation.Y,
+                            z = droppedLocation.Z,
+                            rx = relativeLocation.X,
+                            ry = relativeLocation.Y,
+                            rz = relativeLocation.Z
+                        });
                     }
-
-
                 }
             }
 
-
+            var povRotation = localPlayer.PlayerController.PlayerCameraManager.povRotation;
+            var povLocation = localPlayer.PlayerController.PlayerCameraManager.povLocation;
+            //get zone info
+            json.camera.Add(new Camera { n = "Rotation", X = povRotation.X, Y = povRotation.Y, Z = povRotation.Z });
+            json.camera.Add(new Camera { n = "Location", X = povLocation.X, Y = povLocation.Y, Z = povLocation.Z });
+            json.camera.Add(new Camera { n = "Fov", X = localPlayer.PlayerController.PlayerCameraManager.Fov, Y = 0, Z = 0 });
+            json.zone.Add(new Zone { r = pWorld.GameState.blueR, x = pWorld.GameState.blue.X, y = pWorld.GameState.blue.Y });
+            json.zone.Add(new Zone { r = pWorld.GameState.whiteR, x = pWorld.GameState.white.X, y = pWorld.GameState.white.Y });
 
 
             //var m_UWorld = KReader.readUlong(KReader.m_PUBase + 0x37E5988);
