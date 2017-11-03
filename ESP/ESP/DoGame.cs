@@ -73,13 +73,13 @@ namespace CPUZ
             }
             return "";
         }
-        
+
         public static FTransform GetBoneWithIndex(ulong mesh, Bones bone)
         {
-            var cachedBoneSpaceTransforms = KReader.readUlong(mesh + 0x0958, 0x8);
+            var cachedBoneSpaceTransforms = KReader.readUlong(mesh + 0x0958, 0);
             return KReader.readFtransform(cachedBoneSpaceTransforms + (ulong)((int)bone * 0x30), 0);
         }
-        
+
         public static Vector3 GetBoneWithRotation(ulong mesh, Bones bone)
         {
             var fbone = GetBoneWithIndex(mesh, bone);
@@ -87,13 +87,14 @@ namespace CPUZ
             var matrix = Matrix.Multiply(fbone.ToMatrixWithScale(), componentToWorld.ToMatrixWithScale());
             return new Model.Vector3(matrix.M41, matrix.M42, matrix.M43);
         }
-        
+
         public static JSON_DATA getGameDate()
         {
             if (baseAdd == 0)
                 return null;
             var json = new JSON_DATA();
-            var uworld = new UWorld(baseAdd + 0x37E5988);
+            var pubg = new Pubg(baseAdd + Setting.UWorldOffset);
+            var uworld = pubg.UWorld;
             var gameInstance = uworld.OwningGameInstance;
             var localPlayers = gameInstance.LocalPlayers;
             var localPlayer = localPlayers[0];
@@ -111,12 +112,12 @@ namespace CPUZ
                 if (actor.isPlayer)
                 {
                     var playerState = actor.PlayerState;
-                    var _actorLocation = actorLocation +pWorld.WorldLocation;
+                    var _actorLocation = actorLocation + pWorld.WorldLocation;
 
                     json.players.Add(new Players
                     {
                         //AName = actorGName,
-                        //AName = playerState.PlayerName,
+                        AName = playerState.PlayerName,
                         AID = actorId,
                         x = _actorLocation.X,
                         y = _actorLocation.Y,
@@ -135,7 +136,7 @@ namespace CPUZ
                 //车辆
                 else if (actor.isVehicle)
                 {
-                    var _actorLocation = actorLocation +pWorld.WorldLocation;
+                    var _actorLocation = actorLocation + pWorld.WorldLocation;
                     json.vehicles.Add(new Vehicle
                     {
                         v = actorGName.Substring(0, 4),
@@ -177,24 +178,24 @@ namespace CPUZ
                 }
                 else if (actor.isAirdropOrDeathdrop)
                 {
-                    var droppedItemArray = actor.AItemPackages;
-                    var droppedItemCount = actor.AItemPackagesCount;
-                    for (var j = 0; j < droppedItemCount; j++)
-                    {
-                        var dropItem = droppedItemArray[j];
-                        var _actorLocation = actorLocation + pWorld.WorldLocation;
+                    //var droppedItemArray = actor.AItemPackages;
+                    //var droppedItemCount = actor.AItemPackagesCount;
+                    //for (var j = 0; j < droppedItemCount; j++)
+                    //{
+                    //    var dropItem = droppedItemArray[j];
+                    var _actorLocation = actorLocation + pWorld.WorldLocation;
 
-                        json.vehicles.Add(new Vehicle
-                        {
-                            v = actor.ActorName.Substring(0, 4),
-                            x = _actorLocation.X,
-                            y = _actorLocation.Y,
-                            z = _actorLocation.Z,
-                            rx = rootComponent.RelativeLocation.X,
-                            ry = rootComponent.RelativeLocation.Y,
-                            rz = rootComponent.RelativeLocation.Z
-                        });
-                    }
+                    json.vehicles.Add(new Vehicle
+                    {
+                        v = actor.ActorName.Substring(0, 4),
+                        x = _actorLocation.X,
+                        y = _actorLocation.Y,
+                        z = _actorLocation.Z,
+                        rx = rootComponent.RelativeLocation.X,
+                        ry = rootComponent.RelativeLocation.Y,
+                        rz = rootComponent.RelativeLocation.Z
+                    });
+                    //}
                 }
             }
 

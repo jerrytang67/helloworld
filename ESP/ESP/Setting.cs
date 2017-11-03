@@ -13,5 +13,9 @@
         public static int JSON_STATE { get; set; } = 0;
 
         public static bool Web端 { get; set; } = false;
+
+
+        public static ulong UWorldOffset { get; } = 0x37E6988;
+        public static ulong GNameOffset { get; } = 0x36E9790;
     }
 }

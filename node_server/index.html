@@ -358,17 +358,17 @@ function drawPlayers(ctx)
 		ctx.font = ''+8/scaledFactor+'pt Calibri';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(i, centerX, centerY+(3/scaledFactor));
+        ctx.fillText(health, centerX, centerY+(3/scaledFactor));
 		
 		
 		var healthOffset = 14;
 		if(angle > 0)
 			healthOffset = -9;
 		
-		ctx.font = ''+8/scaledFactor+'pt Calibri';
+		ctx.font = ''+8/scaledFactor+'pt 微软雅黑';
         ctx.fillStyle = 'red';
         ctx.textAlign = 'center';
-        ctx.fillText(health, centerX, centerY+(healthOffset/scaledFactor));
+        ctx.fillText(players[i].AName, centerX, centerY+(healthOffset/scaledFactor));
 		
 		if(i==0){
 		

@@ -32,8 +32,11 @@ namespace CPUZ
 
 
             HotKeyManager.RegisterHotKey(Keys.F1, KeyModifiers.Alt);
+            //开关车辆
             HotKeyManager.RegisterHotKey(Keys.NumPad7, KeyModifiers.Alt);
+            //开关物品
             HotKeyManager.RegisterHotKey(Keys.NumPad8, KeyModifiers.Alt);
+            //开关雷达
             HotKeyManager.RegisterHotKey(Keys.NumPad9, KeyModifiers.Alt);
 
             HotKeyManager.HotKeyPressed += HotKeyManager_HotKeyPressed;

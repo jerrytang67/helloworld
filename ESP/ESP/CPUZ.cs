@@ -289,9 +289,9 @@ namespace CPUZ
 
                                     #region 骨骼
 
-                                    if (lDeltaInMeters < 100)
+                                    if (lDeltaInMeters < 150 && lDeltaInMeters>10)
                                     {
-                                        //DrawSkeleton(player.mesh, PlayerCameraManager, device, brushRed, fontESP);
+                                        DrawSkeleton(player.mesh, PlayerCameraManager, device, brushRed, fontESP);
                                     }
                                     #endregion
                                 }
@@ -312,7 +312,7 @@ namespace CPUZ
                     {
                         System.IO.File.WriteAllText("c:\\log\\bug_json.txt", JsonConvert.SerializeObject(json_data));
                     }
-                    Thread.Sleep(1000 / 60);
+                    Thread.Sleep(10);
                 }
             })
             {
@@ -364,74 +364,50 @@ namespace CPUZ
 
         private void DrawSkeleton(ulong mesh, PlayerCameraManager CameraManager, WindowRenderTarget device, Brush brush, TextFormat font)
         {
-            Bones[] l = { Bones.pelvis /*,Bones.forehead, Bones.Head,Bones.neck_01,Bones.hand_l,Bones.hand_r,Bones.foot_l,Bones.foot_r*/};
-            foreach (var b in l)
-            {
-                Vector3 pos = DoGame.GetBoneWithRotation(mesh, (Bones)b);
-                Vector2 h1;
-                WorldToScreen(pos, CameraManager, out h1);
-                var radarPlayerRectangle = new RoundedRectangle()
-                {
-                    RadiusX = 4,
-                    RadiusY = 4,
-                    Rect = new RawRectangleF(h1.X, h1.Y, h1.X + 4,
-                        h1.Y + 4)
-                };
-                //DrawText(b.ToString(), (int)h1.X + 4,
-                //    (int)(int)h1.Y + 4,
-                //    new SolidColorBrush(device, RawColorFromColor(Color.White))
-                //    , fontFactory,
-                //    fontESP,
-                //    device);
+            Vector2 vHead, vRoot, vCenter;
+            var bRoot = DoGame.GetBoneWithRotation(mesh, Bones.Root);
+            var middle = DoGame.GetBoneWithRotation(mesh, Bones.pelvis);
 
-                device.FillRoundedRectangle(radarPlayerRectangle, brush);
+            WorldToScreen(bRoot, CameraManager, out vRoot);
+            WorldToScreen(middle, CameraManager, out vCenter);
 
-            }
+            var flWidth = Math.Abs(vRoot.Y - vCenter.Y) / 2;
+            var flHeight = Math.Abs(vRoot.Y - vCenter.Y);
+            vHead.X = vCenter.X - flWidth;
+            vHead.Y = vCenter.Y - flHeight;
+            //2d box drawing
+            //2d box drawing
+            DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X + flWidth, vHead.Y, device,brush); // top
+            DrawLine(vCenter.X - flWidth, vRoot.Y, vCenter.X + flWidth, vRoot.Y, device, brush); // bottom
+            DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X - flWidth, vRoot.Y, device, brush); // left
+            DrawLine(vCenter.X + flWidth, vRoot.Y, vCenter.X + flWidth, vHead.Y, device, brush); // right
 
-            //Vector3 neckpos = DoGame.GetBoneWithRotation(mesh, Bones.neck_01);
-            //Vector3 pelvispos = DoGame.GetBoneWithRotation(mesh, Bones.pelvis);
-            //Vector3 previous = new Vector3(0, 0, 0);
-            //Vector3 current;
-            //Vector2 p1, c1;
-            //foreach (var a in DoGame.skeleton)
+
+            //Bones[] l = { Bones.forehead, Bones.Head,Bones.neck_01,Bones.hand_l,Bones.hand_r,Bones.foot_l,Bones.foot_r};
+            //foreach (var b in l)
             //{
-            //    previous = new Vector3(0, 0, 0);
-            //    foreach (var bone in a)
+            //    Vector3 pos = DoGame.GetBoneWithRotation(mesh, (Bones)b);
+            //    Vector2 h1;
+            //    WorldToScreen(pos, CameraManager, out h1);
+            //    var radarPlayerRectangle = new RoundedRectangle()
             //    {
-            //        current = bone == Bones.neck_01 ? neckpos : (bone == Bones.pelvis ? pelvispos : DoGame.GetBoneWithRotation(mesh, bone));
-            //        current = DoGame.GetBoneWithRotation(mesh, bone);
-            //        if (previous.X == 0)
-            //        {
-            //            previous = current;
-            //            continue;
-            //        }
-            //        WorldToScreen(previous, CameraManager, out p1);
-            //        WorldToScreen(current, CameraManager, out c1);
+            //        RadiusX = 4,
+            //        RadiusY = 4,
+            //        Rect = new RawRectangleF(h1.X, h1.Y, h1.X + 4,
+            //            h1.Y + 4)
+            //    };
+            //    var fontFactory = new SharpDX.DirectWrite.Factory();
+            //    var fontConsolas = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 15);
+            //    var fontESP = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 12);
+            //    DrawText(b.ToString(), (int)h1.X + 4,
+            //        (int)(int)h1.Y + 4,
+            //        new SolidColorBrush(device, RawColorFromColor(Color.White))
+            //        , fontFactory,
+            //        fontESP,
+            //        device);
 
-            //        var radarPlayerRectangle = new RoundedRectangle()
-            //        {
-            //            RadiusX = 4,
-            //            RadiusY = 4,
-            //            Rect = new RawRectangleF(c1.X, c1.Y, c1.X + 2,
-            //                c1.Y + 2)
-            //        };
-            //        var fontFactory = new SharpDX.DirectWrite.Factory();
-            //        var fontESP = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 8);
+            //    device.FillRoundedRectangle(radarPlayerRectangle, brush);
 
-            //        DrawText(bone.ToString(), (int)c1.X + 4,
-            //            (int)(int)c1.Y + 4,
-            //            new SolidColorBrush(device, RawColorFromColor(Color.White))
-            //            , fontFactory,
-            //            fontESP,
-            //            device);
-
-            //        DRAW ENEMY
-            //        device.FillRoundedRectangle(radarPlayerRectangle,
-            //            new SolidColorBrush(device, RawColorFromColor(Color.White)));
-
-            //        DrawLine(p1.X, p1.Y, c1.X, c1.Y, device, new SolidColorBrush(device, RawColorFromColor(Color.White)));
-            //        previous = current;
-            //    }
             //}
         }
 
