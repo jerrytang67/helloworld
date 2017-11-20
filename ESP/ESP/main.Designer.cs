@@ -267,7 +267,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(300, 345);
+            this.ClientSize = new System.Drawing.Size(300, 380);
             this.Controls.Add(this.materialLabel1);
             this.Controls.Add(this.chkJump);
             this.Controls.Add(this.materialFlatButton1);

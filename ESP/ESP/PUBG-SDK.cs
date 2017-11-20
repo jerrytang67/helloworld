@@ -162,14 +162,14 @@ namespace CPUZ
         [Offset(0x03A8)]
         public ulong PlayerNameAddress { get; set; }
         [Offset(0x03A8 + 0x8)]
-        public int PlayerNameLengthPlus1 { get; set; }
+        public int PlayerNameLength { get; set; }
 
         public string PlayerName
         {
             get
             {
-                if (PlayerNameLengthPlus1 <= 0) return "";
-                var v = KReader.ReadStringUnicode(PlayerNameAddress, PlayerNameLengthPlus1);
+                if (PlayerNameLength <= 0) return "";
+                var v = KReader.ReadStringUnicode(PlayerNameAddress, PlayerNameLength);
                 return v.Length > 0 ? v.Substring(0, v.Length - 1) : string.Empty;
             }
         }
@@ -181,7 +181,7 @@ namespace CPUZ
         public PWorld(ulong address) : base(address)
         {
         }
-
+         
         [Offset(0x0030)]
         public ULevel PersistentLevel { get; set; }
         [Offset(0x00F8)]
@@ -245,7 +245,7 @@ namespace CPUZ
         [Offset(0x0018)]
         public int ActorID { get; set; }
 
-        public string ActorName => KReader.getGNameFromId(ActorID);
+        public string ActorName => Cache.GetGName(ActorID);// KReader.getGNameFromId(ActorID);
 
         [Offset(0x0180)]
         public USceneComponent RootComponent { get; set; }
@@ -331,7 +331,7 @@ namespace CPUZ
         [Offset(0x0018)]
         public int ItemId { get; set; }
 
-        public string ItemName => KReader.getGNameFromId(ItemId);
+        public string ItemName => Cache.GetGName(ItemId);// KReader.getGNameFromId(ItemId);
     }
 
     public class Mesh : BaseEntry

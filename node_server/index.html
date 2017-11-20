@@ -2,127 +2,146 @@
 <html>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<style>
+    body {
+          padding: 0;
+          margin: 0;
+    }
+
+    .container {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          top: 0;
+    }
+
+    .map {
+          display: block;
+    }
+</style>
 <body style="background-color: #183a52; width:100%; height: 100%; margin:0; overflow: hidden">
-<canvas id="myCanvas"
-style="overflow: hidden ">
-</canvas>
+    <canvas id="myCanvas" style="overflow: hidden ">
+    </canvas>
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script>
- 
     function getJson() {
         //$.getJSON("http://m.wjhaomama.com/pubg/api/values/6",
-		$.getJSON("http://127.0.0.1:3000/api/5",
+        $.getJSON("http://127.0.0.1:3000/api/5",
             function (data) {
                 locations = data;
             });
-    }  
+    }
 
-// reference canvas and make it screen size since doing it in HTML is balls
-var canvas = document.getElementById('myCanvas');
-canvas.width  = window.innerWidth;
-canvas.height = window.innerHeight;
-// setup context and database connection
-var ctx = canvas.getContext('2d');
-var factor = 1;
-var scaledFactor = 1;
-var locations = {};
+    // reference canvas and make it screen size since doing it in HTML is balls
+    var canvas = document.getElementById('myCanvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    // setup context and database connection
+    var ctx = canvas.getContext('2d');
+    var factor = 1;
+    var scaledFactor = 1;
+    var locations = {};
 
-var players = {};
-var zone;
+    var players = {};
+    var zone;
 
-var mapImage = new Image;
-var lastloc;
-var zoomLevel;
+    var mapImage = new Image;
+    var lastloc;
+    var zoomLevel;
 
-var lastBlueZone;
-var lastWhiteZone;
+    var lastBlueZone;
+    var lastWhiteZone;
 
-//uuaing
-var isVehiclesShow = true;
-var isDropItemsShow = true;
-var isExtShow = false;
-var isFinnal = false;
-var playerLastPosition;
+    //uuaing
+    var isVehiclesShow = true;
+    var isDropItemsShow = true;
+    var isExtShow = false;
+    var isFinnal = false;
+    var playerLastPosition;
 
-var tracked_player = parseInt(getParameterByName('id') || 0);
+    var tracked_player = parseInt(getParameterByName('id') || 0);
+    var separated = {};
+    var viewPointOffset = {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+    };
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
 
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
+    // translates game coords to overlay coords
+    function game2pix(p) {
+        return p * (8130 / 813000)
+    }
 
-// translates game coords to overlay coords
-function game2pix(p){
-	return p*(8130/813000)
-}
+    function drawStrokedText(text, x, y, fillcolor) {
+        ctx.fillStyle = 'black';
+        ctx.fillText(text, x - 1 / scaledFactor, y);
+        ctx.fillText(text, x, y - 1 / scaledFactor);
+        ctx.fillText(text, x + 1 / scaledFactor, y);
+        ctx.fillText(text, x, y + 1 / scaledFactor);
+        ctx.fillStyle = fillcolor;
+        ctx.fillText(text, x, y);
+    }
 
- function drawStrokedText(text, x, y, fillcolor){
-      ctx.fillStyle = 'black';
-      ctx.fillText(text, x-1/scaledFactor, y);
-      ctx.fillText(text, x, y-1/scaledFactor);
-      ctx.fillText(text, x+1/scaledFactor, y);
-      ctx.fillText(text, x, y+1/scaledFactor);
-      ctx.fillStyle = fillcolor;
-      ctx.fillText(text,x,y);
-}
+    function intersects(a, b) {
+        if (a.x > (b.x + b.w) || b.x > (a.x + a.w)) //beside
+            return false;
+        if ((a.y + a.h) < b.y || (b.y + b.h) < a.y) //above
+            return false;
+        return true;
+    }
 
-function intersects(a, b)
-{
-	if (a.x > (b.x + b.w) || b.x > (a.x + a.w)) //beside
-		return false;
-	if ((a.y + a.h) < b.y || (b.y + b.h) < a.y) //above
-		return false;
-	return true;
-}
+    var separated = {};
 
-var separated = {};
-function separate() 
-{
-	var a, b; // to hold any two items that are overlapping
-	var dx, dy, dxa, dxb, dya, dyb; // holds delta values of the overlap
-	
-	do {
-		var touching = false; // a boolean flag to keep track of touching items
-		for (var i = 0; i < separated.length; i++) {
-			a = separated[i];
-			for (var j = i+1; j < separated.length; j++) { // for each pair of items
-				b = separated[j];
-				if (intersects(a,b)) {
-					touching = true; //iterate again
-					
-					//calculate the minimum movement delta
-					dx = Math.min((a.x+a.w)-b.x+1, a.x-(b.x+b.w)-1);
-					dy = Math.min((a.y+a.h)-b.y+1, a.y-(b.y+b.h)-1);
-						
-					// only keep the smallest delta, multiply width as 
-					// text is always longer than tall so it wont only stack vertical
-					(Math.abs(dx) < (2.25*Math.abs(dy))) ? dy = 0 : dx = 0;
-						
-					// create a delta for each rectangle as half the whole delta.
-					dxa = -dx/2;
-					dxb = dx+dxa;
-						
-					// same for y
-					dya = -dy/2;
-					dyb = dy+dya;
-						
-					// shift both rectangles
-					separated[i].x += dxa;
-					separated[i].y += dya;
-					
-					separated[j].x += dxb;
-					separated[j].y += dyb;
-				}
-			} 
-		}
-	} while (touching); // loop until no rectangles are touching
-}
+    function separate() {
+        var a, b; // to hold any two items that are overlapping
+        var dx, dy, dxa, dxb, dya, dyb; // holds delta values of the overlap
+
+        do {
+            var touching = false; // a boolean flag to keep track of touching items
+            for (var i = 0; i < separated.length; i++) {
+                a = separated[i];
+                for (var j = i + 1; j < separated.length; j++) { // for each pair of items
+                    b = separated[j];
+                    if (intersects(a, b)) {
+                        touching = true; //iterate again
+
+                        //calculate the minimum movement delta
+                        dx = Math.min((a.x + a.w) - b.x + 1, a.x - (b.x + b.w) - 1);
+                        dy = Math.min((a.y + a.h) - b.y + 1, a.y - (b.y + b.h) - 1);
+
+                        // only keep the smallest delta, multiply width as 
+                        // text is always longer than tall so it wont only stack vertical
+                        (Math.abs(dx) < (2.25 * Math.abs(dy))) ? dy = 0: dx = 0;
+
+                        // create a delta for each rectangle as half the whole delta.
+                        dxa = -dx / 2;
+                        dxb = dx + dxa;
+
+                        // same for y
+                        dya = -dy / 2;
+                        dyb = dy + dya;
+
+                        // shift both rectangles
+                        separated[i].x += dxa;
+                        separated[i].y += dya;
+
+                        separated[j].x += dxb;
+                        separated[j].y += dyb;
+                    }
+                }
+            }
+        } while (touching); // loop until no rectangles are touching
+    }
 
     function drawVehicles(ctx) {
         var color = "#30C37C";
@@ -146,543 +165,556 @@ function separate()
         }
     }
 
-function drawZone(ctx){
-	blueZone = zone[0];	
-	whiteZone = zone[1];
+    function drawZone(ctx) {
+        blueZone = zone[0];
+        whiteZone = zone[1];
 
-	if(blueZone.r > 0){
-		lastBlueZone = blueZone;
-	}
+        if (blueZone.r > 0) {
+            lastBlueZone = blueZone;
+        }
 
-	ctx.beginPath();
-	ctx.arc(game2pix(lastBlueZone.x),game2pix(lastBlueZone.y), game2pix(lastBlueZone.r), 0, 2 * Math.PI, false);
-	ctx.lineWidth = 5;
-	ctx.strokeStyle = "blue";
-	ctx.stroke();
-	
-	if(whiteZone.r > 0){
-		lastWhiteZone = whiteZone;
-	}
+        ctx.beginPath();
+        ctx.arc(game2pix(lastBlueZone.x), game2pix(lastBlueZone.y), game2pix(lastBlueZone.r), 0, 2 * Math.PI, false);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "blue";
+        ctx.stroke();
 
-	ctx.beginPath();
-	ctx.arc(game2pix(lastWhiteZone.x),game2pix(lastWhiteZone.y), game2pix(lastWhiteZone.r), 0, 2 * Math.PI, false);
-	ctx.lineWidth = 5;
-	ctx.strokeStyle = "white";
-	ctx.stroke();	
-}
+        if (whiteZone.r > 0) {
+            lastWhiteZone = whiteZone;
+        }
 
-function drawDropItems(ctx) {
-        var color,txt,fontSize;
+        ctx.beginPath();
+        ctx.arc(game2pix(lastWhiteZone.x), game2pix(lastWhiteZone.y), game2pix(lastWhiteZone.r), 0, 2 * Math.PI, false);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+    }
+
+    function drawDropItems(ctx) {
+        var color, txt, fontSize;
         for (var i = dropItems.length - 1; i >= 0; i--) {
             var centerX = game2pix(dropItems[i].x);
             var centerY = game2pix(dropItems[i].y);
-            var radius = 2/ scaledFactor;
+            var radius = 2 / scaledFactor;
             var item = dropItems[i];
-			//var fontColor = '#7a1212';
-			var fontColor = "#d31f88";
+            //var fontColor = '#7a1212';
+            var fontColor = "#d31f88";
 
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
             ctx.lineWidth = 5;
-			
 
-            if (item.n.indexOf("Helm3") > -1) {
-                txt = "T";
+
+            if (item.n.indexOf("三级") > -1) {
+                txt = item.n;
                 color = '#FF7171';
                 fontSize = 12;
             }
-            else if (item.n.indexOf("Vest3") > -1) {
-                txt = "JIA";
+            else if (item.n.indexOf("快扩") > -1) {
+                txt = "快扩";
                 color = '#FF7171';
                 fontSize = 12;
-            }
+            } 
             else if (item.n.indexOf("4x") > -1) {
                 txt = "4X";
                 color = '#FF7171';
                 fontSize = 12;
-            }
-            else if (item.n.indexOf("8x") > -1) {
+            } else if (item.n.indexOf("8x") > -1) {
                 txt = "8X";
                 color = '#FF7171';
                 fontSize = 12;
-            } 
-            else if (item.n.indexOf("98K") > -1) {
+            } else if (item.n.indexOf("98K") > -1) {
                 txt = "98K";
                 color = '#FF7171';
                 fontSize = 12;
-            } 
-            else if (item.n.indexOf("Meds") > -1) {
+            } else if (item.n.indexOf("Meds") > -1) {
                 txt = "";
                 color = '#9641A4';
                 fontSize = 9;
-            }
-            else if (item.n.indexOf("Supp(AR)") > -1) {
+            } else if (item.n.indexOf("Supp(AR)") > -1) {
                 txt = "AR";
                 color = '#9641A4';
                 fontSize = 12;
-				fontColor = "green"
-            }else if (item.n.indexOf("Supp(SR)") > -1) {
+                fontColor = "green"
+            } else if (item.n.indexOf("Supp(SR)") > -1) {
                 txt = "SR";
                 color = '#9641A4';
                 fontSize = 9;
-            }else if (item.n.indexOf("YAO") > -1) {
+            } else if (item.n.indexOf("YAO") > -1) {
                 txt = "Y";
                 color = '#9641A4';
                 fontSize = 8;
-            }else if (item.n.indexOf("556") > -1) {
+            } else if (item.n.indexOf("556") > -1) {
                 txt = "";
                 color = 'green';
                 fontSize = 8;
-				centerX = centerX +2;
-				centerY = centerY +2;
-            }else if (item.n.indexOf("reddot") > -1) {
+                centerX = centerX + 2;
+                centerY = centerY + 2;
+            } else if (item.n.indexOf("reddot") > -1) {
                 txt = "";
                 color = 'red';
-                fontSize = 8;				
-            }else if (item.n.indexOf("M416") > -1) {
-                txt = "M4";			
-            } 			
-			else {
+                fontSize = 8;
+            } else if (item.n.indexOf("M416") > -1) {
+                txt = "M4";
+            } else {
                 color = "#000000";
                 txt = item.n;
                 fontSize = 8;
             }
-			
-			if(item.n.indexOf("ex") > -1 || item.n.indexOf("t") > -1|| item.n.indexOf("556") > -1){
-				if(!isExtShow)
-					continue;
-			}
+
+            if (item.n.indexOf("ex") > -1 || item.n.indexOf("t") > -1 || item.n.indexOf("556") > -1) {
+                if (!isExtShow)
+                    continue;
+            }
 
             ctx.fillStyle = color;
             ctx.fill();
 
             ctx.font = 'bold ' + fontSize / scaledFactor + 'pt Calibri';
             ctx.fillStyle = fontColor;
-            ctx.textAlign = 'center'; 			
+            ctx.textAlign = 'center';
             ctx.fillText(txt, centerX, centerY + (12 / scaledFactor));
-            }  
-}
+        }
+    }
 
-function drawLineWithAngle(x,y,length,width,angle,color){
+    function drawLineWithAngle(x, y, length, width, angle, color) {
 
-		var anX = 5 * Math.cos(Math.PI * angle / 180.0);
-		var anY = 5 * Math.sin(Math.PI * angle / 180.0);
-		
-		var x1 = x + anX;
-		var y1 = y + anY;
-		
-		var circle1 = {
-			x: x,
-			y: y,
-			r: 5
-		};
+        var anX = 5 * Math.cos(Math.PI * angle / 180.0);
+        var anY = 5 * Math.sin(Math.PI * angle / 180.0);
 
-		var circle2 = {
-			x: x1 ,
-			y: y1 ,
-			r: 0
-		};
-		
-		var arrow = 
-		{
-			h: width,
-			w: length
-		};
-		
-		drawArrow(ctx, arrow, circle1, circle2, color);			
+        var x1 = x + anX;
+        var y1 = y + anY;
 
-}
+        var circle1 = {
+            x: x,
+            y: y,
+            r: 5
+        };
 
-function drawPlayers(ctx)
-{
-    if(players.length>50)
-        return;
-    for(var i = players.length-1; i>=0; i--)
-    {
-        var centerX = game2pix(players[i].x);
-        var centerY = game2pix(players[i].y);
-        var radius = 5/scaledFactor;
-		var color;
-			
-		var isTeamMember = false;		
-		var health = Math.round(players[i].health);
+        var circle2 = {
+            x: x1,
+            y: y1,
+            r: 0
+        };
 
-		var x0 = players[0].x; //x of player's
-		var y0 = players[0].y; //y of player's 
-		var x1 = players[i].x; //x of current actor's	
-		var y1 = players[i].y; //y of current actor's	
+        var arrow = {
+            h: width,
+            w: length
+        };
 
-		var isDrawLongLine = false;
+        drawArrow(ctx, arrow, circle1, circle2, color);
 
+    }
+
+    function drawPlayers(ctx) {
+        for (var i = players.length - 1; i >= 0; i--) {
+            var centerX = game2pix(players[i].x);
+            var centerY = game2pix(players[i].y);
+            var radius = 5 / scaledFactor;
+            var color;
+
+            var isTeamMember = false;
+            var health = Math.round(players[i].health);
+
+            var x0 = players[0].x; //x of player's
+            var y0 = players[0].y; //y of player's 
+            var x1 = players[i].x; //x of current actor's	
+            var y1 = players[i].y; //y of current actor's	
+
+            var isDrawLongLine = false;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            //ctx.lineWidth = 5;
+            if (i == tracked_player) {
+                color = '#00BB00';
+                isTeamMember = true;
+                isDrawLongLine = true;
+            } else {
+                color = players[0].t == players[i].t ? '#0033BB' : '#ff0000';
+                if (players[0].t == players[i].t) {
+                    isTeamMember = true;
+                    isDrawLongLine = true;
+                }
+            }
+
+            if (players[i].isInactive == 0 && health == 0) {
+                color = "grey"
+            }
+
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            ctx.beginPath();
+            var angle = players[i].rotator;
+
+            drawLineWithAngle(centerX, centerY, 15 / scaledFactor, 6 / scaledFactor, angle, color);
+
+            if (i != 0) {
+                if (isLookatU(x0, y0, x1, y1, angle))
+                    isDrawLongLine = true;
+            }
+
+            if (isDrawLongLine)
+                drawLineWithAngle(centerX, centerY, 300, 0.7, angle, color);
+
+            if (isTeamMember && isFinnal) {
+                drawLineWithAngle(centerX, centerY, 100, 0.7, angle - 100, color);
+                drawLineWithAngle(centerX, centerY, 100, 0.7, angle + 100, color);
+            }
+
+
+            ctx.font = '' + 8 / scaledFactor + 'pt Calibri';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(health, centerX, centerY + (3 / scaledFactor));
+
+
+            var healthOffset = 14;
+            if (angle > 0)
+                healthOffset = -9;
+
+            ctx.font = '' + 8 / scaledFactor + 'pt 微软雅黑';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.fillText(players[i].AName, centerX, centerY + (healthOffset / scaledFactor));
+
+            if (i == 0) {
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'white';
+                ctx.arc(centerX, centerY, 100, 0, 2 * Math.PI, false);
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.font = '' + 8 / scaledFactor + 'pt Calibri';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+
+                var dict = {
+                    0: "N",
+                    90: "E",
+                    180: "S",
+                    270: "W",
+                    45: "NE",
+                    135: "SE",
+                    225: "SW",
+                    315: "NW"
+                };
+
+                for (j = 0; j < 24; j++) {
+                    var color = "white";
+                    var len = 120;
+                    ang = j * 15;
+                    tt = Math.abs(ang);
+                    if (tt > 270 || tt < 90)
+                        len = 117;
+
+                    if (dict[tt]) {
+                        tt = dict[tt];
+                        color = "red";
+                        textAtAngle(tt + " ", centerX, centerY, len / scaledFactor, ang - 90, color);
+                    } else {
+                        //if(scaledFactor > 0.8){	
+                        textAtAngle(tt + " ", centerX, centerY, len / scaledFactor, ang - 90, color);
+                        //}
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    function isLookatU(x0, y0, x1, y1, angle) {
+        var isLookU = false;
+        var ang = Math.abs(angle);
+        var distance = game2pix(Math.sqrt(Math.pow((x0 - x1), 2) + Math.pow((y0 - y1), 2)));
+
+        if (ang > 90)
+            ang = 180 - ang;
+
+        var disCalcu = game2pix(Math.abs(Math.abs(x0) - Math.abs(x1)) / Math.cos(ang / 180 * Math.PI));
+
+        if (Math.abs(disCalcu - distance) < 20 && distance < 500) {
+            isLookU = true;
+        }
+
+        if ((x1 > x0) && (Math.abs(angle) < 90)) {
+            isLookU = false;
+        }
+
+        if ((x1 < x0) && (Math.abs(angle) > 90)) {
+            isLookU = false;
+        }
+
+        return isLookU;
+    }
+
+    function lineAtAngle(x1, y1, length, angle) {
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 + length * Math.cos(Math.PI * angle / 180.0), y1 + length * Math.sin(Math.PI * angle / 180.0));
+        ctx.stroke();
+    }
+
+    function textAtAngle(txt, x1, y1, length, angle, color) {
+
+        ctx.moveTo(x1, y1);
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        //ctx.lineWidth = 5;
-		if (i==tracked_player){
-			color = '#00BB00';		
-			isTeamMember = true;
-			isDrawLongLine = true;
-		}else{
-			color = players[0].t == players[i].t ?'#0033BB': '#ff0000';
-			if(players[0].t == players[i].t){
-				isTeamMember = true;
-				isDrawLongLine = true;
-			}
-		}
-		
-		if (players[i].isInactive == 0 && health == 0){
-			color = "grey"
-		}
-		
-		ctx.fillStyle = color;
-        ctx.fill();
-
-		ctx.beginPath();
-		var angle = players[i].rotator;		
-
-		drawLineWithAngle(centerX, centerY, 15/scaledFactor, 6/scaledFactor, angle, color);
-		
-		if(i!=0){			
-			if(isLookatU(x0,y0,x1,y1,angle))
-				isDrawLongLine = true;
-		}		
-		
-		if (isDrawLongLine)
-			drawLineWithAngle(centerX, centerY, 300, 0.7, angle, color);		
-		
-		if(isTeamMember && isFinnal){
-			drawLineWithAngle(centerX, centerY, 100, 0.7, angle - 100, color);
-			drawLineWithAngle(centerX, centerY, 100, 0.7, angle + 100, color);
-		}	
-
-			
-		ctx.font = ''+8/scaledFactor+'pt Calibri';
-        ctx.fillStyle = 'white';
+        ctx.font = '' + 8 / scaledFactor + 'pt Calibri';
+        ctx.fillStyle = color;
         ctx.textAlign = 'center';
-        ctx.fillText(health, centerX, centerY+(3/scaledFactor));
-		
-		
-		var healthOffset = 14;
-		if(angle > 0)
-			healthOffset = -9;
-		
-		ctx.font = ''+8/scaledFactor+'pt 微软雅黑';
-        ctx.fillStyle = 'red';
-        ctx.textAlign = 'center';
-        ctx.fillText(players[i].AName, centerX, centerY+(healthOffset/scaledFactor));
-		
-		if(i==0){
-		
-			ctx.beginPath();
-			ctx.strokeStyle = 'white';
-			ctx.arc(centerX, centerY, 100,0, 2 * Math.PI, false);
-			ctx.lineWidth = 1;
-			ctx.stroke();
-			
-			ctx.beginPath();
-			ctx.font = ''+8/scaledFactor+'pt Calibri';
-			ctx.fillStyle = 'white';
-			ctx.textAlign = 'center';
+        ctx.fillText(txt, x1 + length * Math.cos(Math.PI * angle / 180.0), y1 + length * Math.sin(Math.PI * angle /
+            180.0));
+    }
 
-			var dict = {
-				0: "N",
-				90: "E",
-				180: "S",
-				270: "W",
-				45: "NE",
-				135: "SE",
-				225: "SW",
-				315: "NW"
-			};
-			
-			for( j=0; j<24; j++){
-				var color = "white";				
-				var len = 120;
-				ang = j * 15;					
-				tt = Math.abs(ang);
-				if(tt > 270 || tt < 90)
-					len = 117;
-					
-				if(dict[tt]){
-					tt = dict[tt];	
-					color = "red";
-					textAtAngle(tt+" ", centerX, centerY, len/scaledFactor, ang - 90, color);
-				}else{
-					//if(scaledFactor > 0.8){	
-						textAtAngle(tt+" ", centerX, centerY, len/scaledFactor, ang - 90, color);
-					//}
-				}					
-			}
-
-		}		
-
-	}  
-
-}
-
-function isLookatU(x0, y0, x1, y1, angle){
-		var isLookU = false;
-		var ang = Math.abs(angle);
-		var distance = game2pix(Math.sqrt(Math.pow((x0-x1),2) + Math.pow((y0-y1), 2)));
-
-		if(ang > 90)
-			ang = 180 - ang;
-
-		var disCalcu = game2pix(Math.abs(Math.abs(x0)- Math.abs(x1)) / Math.cos(ang / 180 * Math.PI));
-
-		if(Math.abs(disCalcu - distance) < 20  && distance < 500 ){
-			isLookU = true;
-			}
-		
-		if((x1 > x0) && (Math.abs(angle) < 90)){
-			isLookU = false;
-			}
-			
-		if((x1 < x0) && (Math.abs(angle) > 90)){
-			isLookU = false;
-			}
-				
-		return isLookU;
-}
-
-function lineAtAngle(x1, y1, length, angle) {
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x1 + length * Math.cos(Math.PI * angle / 180.0), y1 + length * Math.sin(Math.PI * angle / 180.0));
-	ctx.stroke();
-}
-
-function textAtAngle(txt, x1, y1, length, angle, color) {
-
-    ctx.moveTo(x1, y1);
-	ctx.beginPath();
-	ctx.font = ''+8/scaledFactor+'pt Calibri';
-	ctx.fillStyle = color;
-	ctx.textAlign = 'center';
-	ctx.fillText(txt, x1 + length * Math.cos(Math.PI * angle / 180.0), y1 + length * Math.sin(Math.PI * angle / 180.0));
-}
-
-mapImage.src = "map.jpg"
+    mapImage.src = "map.jpg"
 
 
-window.onload = function(){   
+    window.onload = function () {
 
-	//console.log('loading done');
-	trackTransforms(ctx);
-	
-	getJson();	
-	redraw();
-	setInterval(function () {
-		getJson();
-		redraw();
-	}, 200);
+        //console.log('loading done');
+        trackTransforms(ctx);
 
-  function redraw(){
-	players = locations.players;
-	vehicles = locations.vehicles;
-	dropItems = locations.items;
-	zone = locations.zone;
-	if(players == undefined)
-  {
-    console.log('players undefined');
-		return;
-  }
-	
-  // Clear the entire canvas
-  var p1 = ctx.transformedPoint(0,0);
-  var p2 = ctx.transformedPoint(canvas.width,canvas.height);
-  ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
-  // draw map
-	ctx.drawImage(mapImage,0,0);	  
-	if(players)
-		drawPlayers(ctx);
-	
-	if(dropItems && isDropItemsShow==true)
-		drawDropItems(ctx);
-		
-	if(vehicles && isVehiclesShow==true){
-		drawVehicles(ctx);
-	}
-	
-	drawZone(ctx);
-}
-      
-      var lastX=canvas.width/2, lastY=canvas.height/2;
-      var dragStart,dragged;
-      canvas.addEventListener('mousedown',function(evt){
-            document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+        getJson();
+        redraw();
+        setInterval(function () {
+            getJson();
+            redraw();
+        }, 500);
+
+        function redraw() {
+            // 视角追踪
+            if (locations.players && locations.players[0]) {
+                var player = locations.players[0];
+                var centerX = game2pix(player.x);
+                var centerY = game2pix(player.y);
+
+                // 相对于上次偏移了多少？
+                ctx.translate(viewPointOffset.x - centerX, viewPointOffset.y - centerY);
+                viewPointOffset.x = centerX;
+                viewPointOffset.y = centerY;
+            }
+
+
+            players = locations.players;
+            vehicles = locations.vehicles;
+            dropItems = locations.items;
+            zone = locations.zone;
+            if (players == undefined) {
+                console.log('players undefined');
+                return;
+            }
+
+            // Clear the entire canvas
+            var p1 = ctx.transformedPoint(0, 0);
+            var p2 = ctx.transformedPoint(canvas.width, canvas.height);
+            ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+            // draw map
+            ctx.drawImage(mapImage, 0, 0);
+            if (players)
+                drawPlayers(ctx);
+
+            if (dropItems && isDropItemsShow == true)
+                drawDropItems(ctx);
+
+            if (vehicles && isVehiclesShow == true) {
+                drawVehicles(ctx);
+            }
+
+            drawZone(ctx);
+        }
+
+        var lastX = canvas.width / 2,
+            lastY = canvas.height / 2;
+        var dragStart, dragged;
+        canvas.addEventListener('mousedown', function (evt) {
+            document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect =
+                'none';
             lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
             lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
-            dragStart = ctx.transformedPoint(lastX,lastY);
+            dragStart = ctx.transformedPoint(lastX, lastY);
             dragged = false;
-      },false);
-      canvas.addEventListener('mousemove',function(evt){
+        }, false);
+        canvas.addEventListener('mousemove', function (evt) {
             lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
             lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
             dragged = true;
-            if (dragStart){
-                  var pt = ctx.transformedPoint(lastX,lastY);
-                  ctx.translate(pt.x-dragStart.x,pt.y-dragStart.y);
-                  redraw();
+            if (dragStart) {
+                var pt = ctx.transformedPoint(lastX, lastY);
+                ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
+                redraw();
             }
-      },false);
-      canvas.addEventListener('mouseup',function(evt){
+        }, false);
+        canvas.addEventListener('mouseup', function (evt) {
             dragStart = null;
-            if (!dragged) zoom(evt.shiftKey ? -1 : 1 );
-      },false);
-	  
-	  
-      var scaleFactor = 1.1;
-      var zoom = function(clicks){
-            var pt = ctx.transformedPoint(lastX,lastY);
-            ctx.translate(pt.x,pt.y);
-            factor = Math.pow(scaleFactor,clicks);
-            scaledFactor *= factor;
-			console.log(scaledFactor);
-            ctx.scale(factor,factor);
-            ctx.translate(-pt.x,-pt.y);
-            redraw();
-      }
+            if (!dragged) zoom(evt.shiftKey ? -1 : 1);
+        }, false);
 
-      var handleScroll = function(evt){
-            var delta = evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
+
+        var scaleFactor = 1.1;
+        var zoom = function (clicks) {
+            var pt = ctx.transformedPoint(lastX, lastY);
+            ctx.translate(pt.x, pt.y);
+            factor = Math.pow(scaleFactor, clicks);
+            scaledFactor *= factor;
+            console.log(scaledFactor);
+            ctx.scale(factor, factor);
+            ctx.translate(-pt.x, -pt.y);
+            redraw();
+        }
+
+        var handleScroll = function (evt) {
+            var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
             if (delta) zoom(delta);
             return evt.preventDefault() && false;
-      };
-      canvas.addEventListener('DOMMouseScroll',handleScroll,false);
-     canvas.addEventListener('mousewheel',handleScroll,false);
-	 
-	 
-	 //uuaing
-	var handleKey = function(e){
-		if (e.keyCode == 38) //up
-		zoom(1);
-		if (e.keyCode == 40) //down
-		zoom(-1);
-		if (e.keyCode == 118){
-			if(isVehiclesShow == false){			
-				isVehiclesShow = true;
-			}else{
-				isVehiclesShow = false;
-			}
-			redraw();
-		};
-		if (e.keyCode == 119){
-			if(isDropItemsShow == false){			
-				isDropItemsShow = true;
-			}else{
-				isDropItemsShow = false;
-			}
-			redraw();
-		};
-		
-		if (e.keyCode == 120){
-			if(isExtShow == false){			
-				isExtShow = true;
-			}else{
-				isExtShow = false;
-			}
-			redraw();
-		};		
-		if (e.keyCode == 121){
-			if(isFinnal == false){			
-				isFinnal = true;
-			}else{
-				isFinnal = false;
-			}
-			redraw();
-		};			
-	}
-	document.addEventListener('keydown', handleKey, false);
+        };
+        canvas.addEventListener('DOMMouseScroll', handleScroll, false);
+        canvas.addEventListener('mousewheel', handleScroll, false);
+
+
+        //uuaing
+        var handleKey = function (e) {
+            if (e.keyCode == 38) //up
+                zoom(1);
+            if (e.keyCode == 40) //down
+                zoom(-1);
+            if (e.keyCode == 118) {
+                if (isVehiclesShow == false) {
+                    isVehiclesShow = true;
+                } else {
+                    isVehiclesShow = false;
+                }
+                redraw();
+            };
+            if (e.keyCode == 119) {
+                if (isDropItemsShow == false) {
+                    isDropItemsShow = true;
+                } else {
+                    isDropItemsShow = false;
+                }
+                redraw();
+            };
+
+            if (e.keyCode == 120) {
+                if (isExtShow == false) {
+                    isExtShow = true;
+                } else {
+                    isExtShow = false;
+                }
+                redraw();
+            };
+            if (e.keyCode == 121) {
+                if (isFinnal == false) {
+                    isFinnal = true;
+                } else {
+                    isFinnal = false;
+                }
+                redraw();
+            };
+        }
+        document.addEventListener('keydown', handleKey, false);
 
 
 
-//do once on load
-zoom(-8);
-};
+        //do once on load
+        zoom(-8);
+    };
 
-// Adds ctx.getTransform() - returns an SVGMatrix
-// Adds ctx.transformedPoint(x,y) - returns an SVGPoint
-function trackTransforms(ctx){
-      var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
-      var xform = svg.createSVGMatrix();
-      ctx.getTransform = function(){ return xform; };
-      
-      var savedTransforms = [];
-      var save = ctx.save;
-      ctx.save = function(){
-            savedTransforms.push(xform.translate(0,0));
+    // Adds ctx.getTransform() - returns an SVGMatrix
+    // Adds ctx.transformedPoint(x,y) - returns an SVGPoint
+    function trackTransforms(ctx) {
+        var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+        var xform = svg.createSVGMatrix();
+        ctx.getTransform = function () {
+            return xform;
+        };
+
+        var savedTransforms = [];
+        var save = ctx.save;
+        ctx.save = function () {
+            savedTransforms.push(xform.translate(0, 0));
             return save.call(ctx);
-      };
-      var restore = ctx.restore;
-      ctx.restore = function(){
+        };
+        var restore = ctx.restore;
+        ctx.restore = function () {
             xform = savedTransforms.pop();
             return restore.call(ctx);
-      };
+        };
 
-      var scale = ctx.scale;
-      ctx.scale = function(sx,sy){
-            xform = xform.scaleNonUniform(sx,sy);
-            return scale.call(ctx,sx,sy);
-      };
-      var rotate = ctx.rotate;
-      ctx.rotate = function(radians){
-            xform = xform.rotate(radians*180/Math.PI);
-            return rotate.call(ctx,radians);
-      };
-      var translate = ctx.translate;
-      ctx.translate = function(dx,dy){
-            xform = xform.translate(dx,dy);
-            return translate.call(ctx,dx,dy);
-      };
-      var transform = ctx.transform;
-      ctx.transform = function(a,b,c,d,e,f){
+        var scale = ctx.scale;
+        ctx.scale = function (sx, sy) {
+            xform = xform.scaleNonUniform(sx, sy);
+            return scale.call(ctx, sx, sy);
+        };
+        var rotate = ctx.rotate;
+        ctx.rotate = function (radians) {
+            xform = xform.rotate(radians * 180 / Math.PI);
+            return rotate.call(ctx, radians);
+        };
+        var translate = ctx.translate;
+        ctx.translate = function (dx, dy) {
+            xform = xform.translate(dx, dy);
+            return translate.call(ctx, dx, dy);
+        };
+        var transform = ctx.transform;
+        ctx.transform = function (a, b, c, d, e, f) {
             var m2 = svg.createSVGMatrix();
-            m2.a=a; m2.b=b; m2.c=c; m2.d=d; m2.e=e; m2.f=f;
+            m2.a = a;
+            m2.b = b;
+            m2.c = c;
+            m2.d = d;
+            m2.e = e;
+            m2.f = f;
             xform = xform.multiply(m2);
-            return transform.call(ctx,a,b,c,d,e,f);
-      };
-      var setTransform = ctx.setTransform;
-      ctx.setTransform = function(a,b,c,d,e,f){
+            return transform.call(ctx, a, b, c, d, e, f);
+        };
+        var setTransform = ctx.setTransform;
+        ctx.setTransform = function (a, b, c, d, e, f) {
             xform.a = a;
             xform.b = b;
             xform.c = c;
             xform.d = d;
             xform.e = e;
             xform.f = f;
-            return setTransform.call(ctx,a,b,c,d,e,f);
-      };
-      var pt  = svg.createSVGPoint();
-      ctx.transformedPoint = function(x,y){
-            pt.x=x; pt.y=y;
+            return setTransform.call(ctx, a, b, c, d, e, f);
+        };
+        var pt = svg.createSVGPoint();
+        ctx.transformedPoint = function (x, y) {
+            pt.x = x;
+            pt.y = y;
             return pt.matrixTransform(xform.inverse());
-      }
-}
+        }
+    }
 
-//draw arrow -- uuaing
-	function drawArrow(canvasContext, arrow, ptArrow, endPt, color) {    
+    //draw arrow -- uuaing
+    function drawArrow(canvasContext, arrow, ptArrow, endPt, color) {
 
         var angleInDegrees = getAngleBetweenPoints(ptArrow, endPt);
 
-		var endPt = getPointOnCircle(endPt.r, ptArrow, endPt);
+        var endPt = getPointOnCircle(endPt.r, ptArrow, endPt);
         // first save the untranslated/unrotated context
-        canvasContext.save();        
-        
+        canvasContext.save();
+
         // move the rotation point to the center of the rect    
-        canvasContext.translate(endPt.x, endPt.y);        
+        canvasContext.translate(endPt.x, endPt.y);
         // rotate the rect
-        canvasContext.rotate(angleInDegrees*Math.PI/180);
+        canvasContext.rotate(angleInDegrees * Math.PI / 180);
 
         canvasContext.beginPath();
-        canvasContext.moveTo(0,0);
-		
-        canvasContext.lineTo( 0, -arrow.h);
-        canvasContext.lineTo( arrow.w, 0);
-        canvasContext.lineTo( 0, +arrow.h);       
+        canvasContext.moveTo(0, 0);
+
+        canvasContext.lineTo(0, -arrow.h);
+        canvasContext.lineTo(arrow.w, 0);
+        canvasContext.lineTo(0, +arrow.h);
         canvasContext.closePath();
         canvasContext.fillStyle = color;
-		canvasContext.lineWidth = 0;
+        canvasContext.lineWidth = 0;
         //canvasContext.stroke();
         canvasContext.fill();
-			
+
 
         // restore the context to its untranslated/unrotated state
         canvasContext.restore();
@@ -695,19 +727,21 @@ function trackTransforms(ctx){
         var x = radius * Math.cos(angleInDegrees * Math.PI / 180) + originPt.x;
         var y = radius * Math.sin(angleInDegrees * Math.PI / 180) + originPt.y;
 
-        return { x: x, y: y };
+        return {
+            x: x,
+            y: y
+        };
     }
 
     function getAngleBetweenPoints(originPt, endPt) {
-        var interPt = { x: endPt.x - originPt.x,
+        var interPt = {
+            x: endPt.x - originPt.x,
             y: endPt.y - originPt.y
         };
 
         return Math.atan2(interPt.y, interPt.x) * 180 / Math.PI;
     }
-//end draw arrow
-
-
+    //end draw arrow
 </script>
 
 </html>

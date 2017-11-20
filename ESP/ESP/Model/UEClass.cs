@@ -4,7 +4,6 @@ using SharpDX;
 
 namespace CPUZ.Model
 {
-
     public struct FTransform
     {
         public Vector4 Rotation;
@@ -12,48 +11,50 @@ namespace CPUZ.Model
         public char UnknownData00;
         public Vector3 Scale3D;
         public char UnknownData01;
-        
-        //public FTransform(Vector4 rot, Vector3 translation, Vector3 scale)
-        //{
-        //    Rotation = rot;
-        //    Translation = translation;
-        //    Scale3D = scale;
-        //}
+
+        public FTransform(Vector4 rot, Vector3 translation, Vector3 scale)
+        {
+            Rotation = rot;
+            UnknownData00 = ' ';
+            Translation = translation;
+            Scale3D = scale;
+            UnknownData01 = ' ';
+        }
 
         public Matrix ToMatrixWithScale()
         {
-            Matrix m = new Matrix();
+            var m = new Matrix();
 
             m.M41 = Translation.X;
             m.M42 = Translation.Y;
             m.M43 = Translation.Z;
 
-            float x2 = Rotation.X + Rotation.X;
-            float y2 = Rotation.Y + Rotation.Y;
-            float z2 = Rotation.Z + Rotation.Z;
+            var x2 = Rotation.X + Rotation.X;
+            var y2 = Rotation.Y + Rotation.Y;
+            var z2 = Rotation.Z + Rotation.Z;
 
-            float xx2 = Rotation.X * x2;
-            float yy2 = Rotation.Y * y2;
-            float zz2 = Rotation.Z * z2;
+            var xx2 = Rotation.X * x2;
+            var yy2 = Rotation.Y * y2;
+            var zz2 = Rotation.Z * z2;
             m.M11 = (1.0f - (yy2 + zz2)) * Scale3D.X;
             m.M22 = (1.0f - (xx2 + zz2)) * Scale3D.Y;
             m.M33 = (1.0f - (xx2 + yy2)) * Scale3D.Z;
 
 
-            float yz2 = Rotation.Y * z2;
-            float wx2 = Rotation.W * x2;
+            var yz2 = Rotation.Y * z2;
+            var wx2 = Rotation.W * x2;
             m.M32 = (yz2 - wx2) * Scale3D.Z;
             m.M23 = (yz2 + wx2) * Scale3D.Y;
 
 
-            float xy2 = Rotation.X * y2;
-            float wz2 = Rotation.W * z2;
+            var xy2 = Rotation.X * y2;
+            var wz2 = Rotation.W * z2;
             m.M21 = (xy2 - wz2) * Scale3D.Y;
             m.M12 = (xy2 + wz2) * Scale3D.X;
 
 
-            float xz2 = Rotation.X * z2;
-            float wy2 = Rotation.W * y2;
+            var xz2 = Rotation.X * z2;
+            var wy2 = Rotation.W * y2;
             m.M31 = (xz2 + wy2) * Scale3D.Z;
             m.M13 = (xz2 - wy2) * Scale3D.X;
 
@@ -66,7 +67,7 @@ namespace CPUZ.Model
         }
     }
 
-    public enum Bones : int
+    public enum Bones
     {
         Root = 0,
         pelvis = 1,
@@ -283,13 +284,7 @@ namespace CPUZ.Model
             Roll = flRoll;
         }
 
-        public double Length
-        {
-            get
-            {
-                return Math.Sqrt(this.Pitch * this.Pitch + this.Yaw * this.Yaw + this.Roll * this.Roll);
-            }
-        }
+        public double Length => Math.Sqrt(Pitch * Pitch + Yaw * Yaw + Roll * Roll);
 
         public FRotator Clamp()
         {
@@ -335,32 +330,31 @@ namespace CPUZ.Model
 
         public Vector3 ToVector()
         {
-            float radPitch = (float)(this.Pitch * Math.PI / 180f);
-            float radYaw = (float)(this.Yaw * Math.PI / 180f);
+            var radPitch = (float) (Pitch * Math.PI / 180f);
+            var radYaw = (float) (Yaw * Math.PI / 180f);
 
-            float SP = (float)Math.Sin(radPitch);
-            float CP = (float)Math.Cos(radPitch);
-            float SY = (float)Math.Sin(radYaw);
-            float CY = (float)Math.Cos(radYaw);
+            var SP = (float) Math.Sin(radPitch);
+            var CP = (float) Math.Cos(radPitch);
+            var SY = (float) Math.Sin(radYaw);
+            var CY = (float) Math.Cos(radYaw);
 
             return new Vector3(CP * CY, CP * SY, SP);
         }
 
-        public SharpDX.Matrix ToMatrix(Vector3 origin = default(Vector3))
+        public Matrix ToMatrix(Vector3 origin = default(Vector3))
         {
+            var radPitch = (float) (Pitch * Math.PI / 180f);
+            var radYaw = (float) (Yaw * Math.PI / 180f);
+            var radRoll = (float) (Roll * Math.PI / 180f);
 
-            float radPitch = (float)(this.Pitch * Math.PI / 180f);
-            float radYaw = (float)(this.Yaw * Math.PI / 180f);
-            float radRoll = (float)(this.Roll * Math.PI / 180f);
+            var SP = (float) Math.Sin(radPitch);
+            var CP = (float) Math.Cos(radPitch);
+            var SY = (float) Math.Sin(radYaw);
+            var CY = (float) Math.Cos(radYaw);
+            var SR = (float) Math.Sin(radRoll);
+            var CR = (float) Math.Cos(radRoll);
 
-            float SP = (float)Math.Sin(radPitch);
-            float CP = (float)Math.Cos(radPitch);
-            float SY = (float)Math.Sin(radYaw);
-            float CY = (float)Math.Cos(radYaw);
-            float SR = (float)Math.Sin(radRoll);
-            float CR = (float)Math.Cos(radRoll);
-
-            SharpDX.Matrix m = new SharpDX.Matrix();
+            var m = new Matrix();
             m[0, 0] = CP * CY;
             m[0, 1] = CP * SY;
             m[0, 2] = SP;
@@ -383,12 +377,35 @@ namespace CPUZ.Model
             return m;
         }
 
-        public static FRotator operator +(FRotator angA, FRotator angB) => new FRotator(angA.Pitch + angB.Pitch, angA.Yaw + angB.Yaw, angA.Roll + angB.Roll);
-        public static FRotator operator -(FRotator angA, FRotator angB) => new FRotator(angA.Pitch - angB.Pitch, angA.Yaw - angB.Yaw, angA.Roll - angB.Roll);
-        public static FRotator operator /(FRotator angA, float flNum) => new FRotator(angA.Pitch / flNum, angA.Yaw / flNum, angA.Roll / flNum);
-        public static FRotator operator *(FRotator angA, float flNum) => new FRotator(angA.Pitch * flNum, angA.Yaw * flNum, angA.Roll * flNum);
-        public static bool operator ==(FRotator angA, FRotator angB) => angA.Pitch == angB.Pitch && angA.Yaw == angB.Yaw && angA.Yaw == angB.Yaw;
-        public static bool operator !=(FRotator angA, FRotator angB) => angA.Pitch != angB.Pitch || angA.Yaw != angB.Yaw || angA.Yaw != angB.Yaw;
+        public static FRotator operator +(FRotator angA, FRotator angB)
+        {
+            return new FRotator(angA.Pitch + angB.Pitch, angA.Yaw + angB.Yaw, angA.Roll + angB.Roll);
+        }
+
+        public static FRotator operator -(FRotator angA, FRotator angB)
+        {
+            return new FRotator(angA.Pitch - angB.Pitch, angA.Yaw - angB.Yaw, angA.Roll - angB.Roll);
+        }
+
+        public static FRotator operator /(FRotator angA, float flNum)
+        {
+            return new FRotator(angA.Pitch / flNum, angA.Yaw / flNum, angA.Roll / flNum);
+        }
+
+        public static FRotator operator *(FRotator angA, float flNum)
+        {
+            return new FRotator(angA.Pitch * flNum, angA.Yaw * flNum, angA.Roll * flNum);
+        }
+
+        public static bool operator ==(FRotator angA, FRotator angB)
+        {
+            return angA.Pitch == angB.Pitch && angA.Yaw == angB.Yaw && angA.Yaw == angB.Yaw;
+        }
+
+        public static bool operator !=(FRotator angA, FRotator angB)
+        {
+            return angA.Pitch != angB.Pitch || angA.Yaw != angB.Yaw || angA.Yaw != angB.Yaw;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -405,46 +422,76 @@ namespace CPUZ.Model
             Z = z;
         }
 
-        public double Length
-        {
-            get
-            {
-                return Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
-            }
-        }
+        public double Length => Math.Sqrt(X * X + Y * Y + Z * Z);
+
         public Vector2 To2D()
         {
-            return new Vector2(this.X, this.Y);
+            return new Vector2(X, Y);
         }
+
         public FRotator ToFRotator()
         {
-            FRotator rot = new FRotator();
+            var rot = new FRotator();
 
-            float RADPI = (float)(180 / Math.PI);
-            rot.Yaw = (float)Math.Atan2(this.Y, this.X) * RADPI;
-            rot.Pitch = (float)Math.Atan2(this.Z, Math.Sqrt((this.X * this.X) + (this.Y * this.Y))) * RADPI;
+            var RADPI = (float) (180 / Math.PI);
+            rot.Yaw = (float) Math.Atan2(Y, X) * RADPI;
+            rot.Pitch = (float) Math.Atan2(Z, Math.Sqrt(X * X + Y * Y)) * RADPI;
             rot.Roll = 0;
 
             return rot;
         }
 
-        public static float DotProduct(Vector3 vecA, Vector3 vecB) => vecA.X * vecB.X + vecA.Y * vecB.Y + vecA.Z * vecB.Z;
+        public static float DotProduct(Vector3 vecA, Vector3 vecB)
+        {
+            return vecA.X * vecB.X + vecA.Y * vecB.Y + vecA.Z * vecB.Z;
+        }
 
         #region Overrides
+
         public override string ToString()
         {
             return $"{X},{Y},{Z}";
         }
-        #endregion
-        #region Operators
-        public static Vector3 operator +(Vector3 vecA, Vector3 vecB) => new Vector3(vecA.X + vecB.X, vecA.Y + vecB.Y, vecA.Z + vecB.Z);
-        public static Vector3 operator -(Vector3 vecA, Vector3 vecB) => new Vector3(vecA.X - vecB.X, vecA.Y - vecB.Y, vecA.Z - vecB.Z);
-        public static Vector3 operator *(Vector3 vecA, Vector3 vecB) => new Vector3(vecA.X * vecB.X, vecA.Y * vecB.Y, vecA.Z * vecB.Z);
-        public static Vector3 operator *(Vector3 vecA, int n) => new Vector3(vecA.X * n, vecA.Y * n, vecA.Z * n);
-        public static Vector3 operator /(Vector3 vecA, Vector3 vecB) => new Vector3(vecA.X / vecB.X, vecA.Y / vecB.Y, vecA.Z / vecB.Z);
 
-        public static bool operator ==(Vector3 vecA, Vector3 vecB) => vecA.X == vecB.X && vecA.Y == vecB.Y && vecA.Y == vecB.Y;
-        public static bool operator !=(Vector3 vecA, Vector3 vecB) => vecA.X != vecB.X || vecA.Y != vecB.Y || vecA.Y != vecB.Y;
+        #endregion
+
+        #region Operators
+
+        public static Vector3 operator +(Vector3 vecA, Vector3 vecB)
+        {
+            return new Vector3(vecA.X + vecB.X, vecA.Y + vecB.Y, vecA.Z + vecB.Z);
+        }
+
+        public static Vector3 operator -(Vector3 vecA, Vector3 vecB)
+        {
+            return new Vector3(vecA.X - vecB.X, vecA.Y - vecB.Y, vecA.Z - vecB.Z);
+        }
+
+        public static Vector3 operator *(Vector3 vecA, Vector3 vecB)
+        {
+            return new Vector3(vecA.X * vecB.X, vecA.Y * vecB.Y, vecA.Z * vecB.Z);
+        }
+
+        public static Vector3 operator *(Vector3 vecA, int n)
+        {
+            return new Vector3(vecA.X * n, vecA.Y * n, vecA.Z * n);
+        }
+
+        public static Vector3 operator /(Vector3 vecA, Vector3 vecB)
+        {
+            return new Vector3(vecA.X / vecB.X, vecA.Y / vecB.Y, vecA.Z / vecB.Z);
+        }
+
+        public static bool operator ==(Vector3 vecA, Vector3 vecB)
+        {
+            return vecA.X == vecB.X && vecA.Y == vecB.Y && vecA.Y == vecB.Y;
+        }
+
+        public static bool operator !=(Vector3 vecA, Vector3 vecB)
+        {
+            return vecA.X != vecB.X || vecA.Y != vecB.Y || vecA.Y != vecB.Y;
+        }
+
         #endregion
     }
 
@@ -459,49 +506,89 @@ namespace CPUZ.Model
             X = x;
             Y = y;
         }
+
         public Vector2(double x, double y)
         {
-            X = (float)x;
-            Y = (float)y;
+            X = (float) x;
+            Y = (float) y;
         }
 
-        public double Length
-        {
-            get
-            {
-                return Math.Sqrt(this.X * this.X + this.Y * this.Y);
-            }
-        }
+        public double Length => Math.Sqrt(X * X + Y * Y);
+
         #region Functions
+
         public Vector2 Rotate(Vector2 centerpoint, double angle, bool bAngleInRadians = false)
         {
             if (!bAngleInRadians)
                 angle = Math.PI * angle / 180.0;
 
-            return new Vector2(this.X * Math.Cos(angle) - this.Y * Math.Sin(angle), this.X * Math.Sin(angle) + this.Y * Math.Cos(angle));
+            return new Vector2(X * Math.Cos(angle) - Y * Math.Sin(angle), X * Math.Sin(angle) + Y * Math.Cos(angle));
         }
+
         #endregion
+
         #region Overrides
+
         public override string ToString()
         {
             return $"{X},{Y}";
         }
+
         #endregion
+
         #region Operators
-        public static Vector2 operator +(Vector2 vecA, Vector2 vecB) => new Vector2(vecA.X + vecB.X, vecA.Y + vecB.Y);
-        public static Vector2 operator -(Vector2 vecA, Vector2 vecB) => new Vector2(vecA.X - vecB.X, vecA.Y - vecB.Y);
-        public static Vector2 operator *(Vector2 vecA, int n) => new Vector2(vecA.X * n, vecA.Y * n);
-        public static Vector2 operator /(Vector2 vecA, Vector2 vecB) => new Vector2(vecA.X / vecB.X, vecA.Y / vecB.Y);
 
-        public static Vector2 operator +(Vector2 vecA, float val) => new Vector2(vecA.X + val, vecA.Y + val);
-        public static Vector2 operator -(Vector2 vecA, float val) => new Vector2(vecA.X - val, vecA.Y - val);
-        public static Vector2 operator *(Vector2 vecA, float val) => new Vector2(vecA.X * val, vecA.Y * val);
-        public static Vector2 operator /(Vector2 vecA, float val) => new Vector2(vecA.X / val, vecA.Y / val);
+        public static Vector2 operator +(Vector2 vecA, Vector2 vecB)
+        {
+            return new Vector2(vecA.X + vecB.X, vecA.Y + vecB.Y);
+        }
+
+        public static Vector2 operator -(Vector2 vecA, Vector2 vecB)
+        {
+            return new Vector2(vecA.X - vecB.X, vecA.Y - vecB.Y);
+        }
+
+        public static Vector2 operator *(Vector2 vecA, int n)
+        {
+            return new Vector2(vecA.X * n, vecA.Y * n);
+        }
+
+        public static Vector2 operator /(Vector2 vecA, Vector2 vecB)
+        {
+            return new Vector2(vecA.X / vecB.X, vecA.Y / vecB.Y);
+        }
+
+        public static Vector2 operator +(Vector2 vecA, float val)
+        {
+            return new Vector2(vecA.X + val, vecA.Y + val);
+        }
+
+        public static Vector2 operator -(Vector2 vecA, float val)
+        {
+            return new Vector2(vecA.X - val, vecA.Y - val);
+        }
+
+        public static Vector2 operator *(Vector2 vecA, float val)
+        {
+            return new Vector2(vecA.X * val, vecA.Y * val);
+        }
+
+        public static Vector2 operator /(Vector2 vecA, float val)
+        {
+            return new Vector2(vecA.X / val, vecA.Y / val);
+        }
 
 
-        public static bool operator ==(Vector2 vecA, Vector2 vecB) => vecA.X == vecB.X && vecA.Y == vecB.Y && vecA.Y == vecB.Y;
-        public static bool operator !=(Vector2 vecA, Vector2 vecB) => vecA.X != vecB.X || vecA.Y != vecB.Y || vecA.Y != vecB.Y;
+        public static bool operator ==(Vector2 vecA, Vector2 vecB)
+        {
+            return vecA.X == vecB.X && vecA.Y == vecB.Y && vecA.Y == vecB.Y;
+        }
+
+        public static bool operator !=(Vector2 vecA, Vector2 vecB)
+        {
+            return vecA.X != vecB.X || vecA.Y != vecB.Y || vecA.Y != vecB.Y;
+        }
+
         #endregion
     }
-
 }

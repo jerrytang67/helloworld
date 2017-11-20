@@ -7,7 +7,7 @@
     <ProjectGuid>{9BC48D38-89A1-47C2-9C68-DC2B9881D033}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>CPUZ</RootNamespace>
-    <AssemblyName>CPUZ</AssemblyName>
+    <AssemblyName>360Tray</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -88,6 +88,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache.cs" />
     <Compile Include="CommonUtil.cs" />
     <Compile Include="CPUZ.cs">
       <SubType>Form</SubType>

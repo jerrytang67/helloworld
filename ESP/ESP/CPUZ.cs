@@ -172,10 +172,13 @@ namespace CPUZ
                                     if (lDeltaInMeters <= 400)
                                     {
                                         Vector2 screenlocation;
-                                        WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
+                                        if (WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation))
+                                        {
 
-                                        DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
-                                            (int)screenlocation.Y, v.v=="Deat"?brushBlack:brushGreen, fontFactory, fontESP, device);
+                                            DrawText($"[{v.v}] {(int)lDeltaInMeters}m", (int)screenlocation.X,
+                                                (int)screenlocation.Y, v.v == "Deat" ? brushBlack : brushGreen,
+                                                fontFactory, fontESP, device);
+                                        }
                                     }
 
                                 }
@@ -195,10 +198,11 @@ namespace CPUZ
                                     var lDeltaInMeters = vecRelativePos.Length / 100;
 
                                     Vector2 screenlocation;
-                                    WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation);
-
-                                    DrawText($"{v.n}", (int)screenlocation.X,
-                                        (int)screenlocation.Y, brushWhite, fontFactory, fontESP, device);
+                                    if (WorldToScreen(vecActorLocation, PlayerCameraManager, out screenlocation))
+                                    {
+                                        DrawText($"{v.n}", (int)screenlocation.X,
+                                                (int)screenlocation.Y, brushWhite, fontFactory, fontESP, device);
+                                    }
 
                                 }
                             }
@@ -227,7 +231,7 @@ namespace CPUZ
                                     if (Setting.线条)
                                         if (lDeltaInMeters > 3)
                                             if (
-                                            //超过200米不显示
+                                            //超过200米不显示线
                                             lDeltaInMeters <= 200
                                             //超过40人不显示线
                                             && json_data.players.Count <= 40
@@ -235,11 +239,12 @@ namespace CPUZ
                                             && player.t != localPlayer.t
                                                 )
                                             {
-                                                Vector2 screenlocation;
-                                                WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
-
-                                                device.DrawLine(new RawVector2(2560 / 2, 1440),
-                                                    new RawVector2(screenlocation.X, screenlocation.Y), lDeltaInMeters <= 100 ? brushRed : brushWhite);
+                                                if (WorldToScreen(vecPlayerLocation, PlayerCameraManager,
+                                                    out var screenlocation))
+                                                {
+                                                    device.DrawLine(new RawVector2(Setting.Screen.Width / 2f, Setting.Screen.Height),
+                                                        new RawVector2(screenlocation.X, screenlocation.Y), lDeltaInMeters <= 100 ? brushRed : brushWhite);
+                                                }
                                             }
                                     #endregion
 
@@ -248,26 +253,29 @@ namespace CPUZ
 
                                         if (Setting.距离和血量)
                                         {
-                                            Vector2 screenlocation;
-                                            WorldToScreen(vecPlayerLocation, PlayerCameraManager, out screenlocation);
-                                            SolidColorBrush brush = brushRed;
+                                            if (WorldToScreen(vecPlayerLocation, PlayerCameraManager,
+                                                out var screenlocation))
+                                            {
+                                                SolidColorBrush brush = brushRed;
 
-                                            if (lDeltaInMeters >= 250)
-                                                brush = brushPurple;
-                                            if (lDeltaInMeters >= 500)
-                                                brush = brushGreen;
-                                            if (player.t == localPlayer.t)
-                                                brush = brushGreen;
+                                                if (lDeltaInMeters >= 250)
+                                                    brush = brushPurple;
+                                                if (lDeltaInMeters >= 500)
+                                                    brush = brushGreen;
+                                                if (player.t == localPlayer.t)
+                                                    brush = brushGreen;
 
-                                            DrawText($"[{player.id}]{(int)player.health} {(int)lDeltaInMeters}m",
-                                                (int)screenlocation.X,
-                                                (int)screenlocation.Y,
-                                                brush,
-                                                fontFactory, fontESP, device);
+                                                DrawText($"[{player.id}]{(int)player.health} {(int)lDeltaInMeters}m",
+                                                    (int)screenlocation.X,
+                                                    (int)screenlocation.Y,
+                                                    brush,
+                                                    fontFactory, fontESP, device);
+                                            }
+
                                         }
 
                                     #endregion
-                                    
+
                                     #region Radar
                                     if (Setting.雷达)
                                     {
@@ -289,7 +297,7 @@ namespace CPUZ
 
                                     #region 骨骼
 
-                                    if (lDeltaInMeters < 150 && lDeltaInMeters>10)
+                                    if (lDeltaInMeters < 250 && lDeltaInMeters > 5)
                                     {
                                         DrawSkeleton(player.mesh, PlayerCameraManager, device, brushRed, fontESP);
                                     }
@@ -347,7 +355,7 @@ namespace CPUZ
 
                         }
                     }
-                    Thread.Sleep(200);
+                    Thread.Sleep(500);
                 }
             });
 
@@ -368,80 +376,52 @@ namespace CPUZ
             var bRoot = DoGame.GetBoneWithRotation(mesh, Bones.Root);
             var middle = DoGame.GetBoneWithRotation(mesh, Bones.pelvis);
 
-            WorldToScreen(bRoot, CameraManager, out vRoot);
-            WorldToScreen(middle, CameraManager, out vCenter);
-
-            var flWidth = Math.Abs(vRoot.Y - vCenter.Y) / 2;
-            var flHeight = Math.Abs(vRoot.Y - vCenter.Y);
-            vHead.X = vCenter.X - flWidth;
-            vHead.Y = vCenter.Y - flHeight;
-            //2d box drawing
-            //2d box drawing
-            DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X + flWidth, vHead.Y, device,brush); // top
-            DrawLine(vCenter.X - flWidth, vRoot.Y, vCenter.X + flWidth, vRoot.Y, device, brush); // bottom
-            DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X - flWidth, vRoot.Y, device, brush); // left
-            DrawLine(vCenter.X + flWidth, vRoot.Y, vCenter.X + flWidth, vHead.Y, device, brush); // right
-
-
-            //Bones[] l = { Bones.forehead, Bones.Head,Bones.neck_01,Bones.hand_l,Bones.hand_r,Bones.foot_l,Bones.foot_r};
-            //foreach (var b in l)
-            //{
-            //    Vector3 pos = DoGame.GetBoneWithRotation(mesh, (Bones)b);
-            //    Vector2 h1;
-            //    WorldToScreen(pos, CameraManager, out h1);
-            //    var radarPlayerRectangle = new RoundedRectangle()
-            //    {
-            //        RadiusX = 4,
-            //        RadiusY = 4,
-            //        Rect = new RawRectangleF(h1.X, h1.Y, h1.X + 4,
-            //            h1.Y + 4)
-            //    };
-            //    var fontFactory = new SharpDX.DirectWrite.Factory();
-            //    var fontConsolas = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 15);
-            //    var fontESP = new SharpDX.DirectWrite.TextFormat(fontFactory, "Consolas", 12);
-            //    DrawText(b.ToString(), (int)h1.X + 4,
-            //        (int)(int)h1.Y + 4,
-            //        new SolidColorBrush(device, RawColorFromColor(Color.White))
-            //        , fontFactory,
-            //        fontESP,
-            //        device);
-
-            //    device.FillRoundedRectangle(radarPlayerRectangle, brush);
-
-            //}
+            if (WorldToScreen(bRoot, CameraManager, out vRoot) && WorldToScreen(middle, CameraManager, out vCenter))
+            {
+                var flWidth = Math.Abs(vRoot.Y - vCenter.Y) / 2;
+                var flHeight = Math.Abs(vRoot.Y - vCenter.Y);
+                vHead.X = vCenter.X - flWidth;
+                vHead.Y = vCenter.Y - flHeight;
+                //2d box drawing
+                //2d box drawing
+                DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X + flWidth, vHead.Y, device, brush); // top
+                DrawLine(vCenter.X - flWidth, vRoot.Y, vCenter.X + flWidth, vRoot.Y, device, brush); // bottom
+                DrawLine(vCenter.X - flWidth, vHead.Y, vCenter.X - flWidth, vRoot.Y, device, brush); // left
+                DrawLine(vCenter.X + flWidth, vRoot.Y, vCenter.X + flWidth, vHead.Y, device, brush); // right
+            }
         }
 
-        private bool WorldToScreen(Vector3 WorldLocation, PlayerCameraManager CameraManager, out Vector2 Screenlocation)
+        private bool WorldToScreen(Vector3 worldLocation, PlayerCameraManager cameraManager, out Vector2 screenlocation)
         {
-            Screenlocation = new Vector2(0, 0);
+            screenlocation = new Vector2(0, 0);
 
-            var POV = CameraManager.CameraCache.POV;
-            FRotator Rotation = POV.Rotation;
+            var pov = cameraManager.CameraCache.POV;
+            var rotation = pov.Rotation;
 
-            Vector3 vAxisX, vAxisY, vAxisZ;
-            Rotation.GetAxes(out vAxisX, out vAxisY, out vAxisZ);
+            rotation.GetAxes(out var vAxisX, out var vAxisY, out var vAxisZ);
 
-            Vector3 vDelta = WorldLocation - POV.Location;
-            Vector3 vTransformed = new Vector3(Vector3.DotProduct(vDelta, vAxisY), Vector3.DotProduct(vDelta, vAxisZ), Vector3.DotProduct(vDelta, vAxisX));
+            var vDelta = worldLocation - pov.Location;
+            var vTransformed = new Vector3(Vector3.DotProduct(vDelta, vAxisY), Vector3.DotProduct(vDelta, vAxisZ), Vector3.DotProduct(vDelta, vAxisX));
 
             if (vTransformed.Z < 1f)
                 vTransformed.Z = 1f;
 
-            float FovAngle = POV.Fov;
-            float ScreenCenterX = 2560 / 2;
-            float ScreenCenterY = 1440 / 2;
+            var fovAngle = pov.Fov;
+            var screenCenterX = Setting.Screen.Width / 2;
+            var screenCenterY = Setting.Screen.Height / 2;
 
-            Screenlocation.X = ScreenCenterX + vTransformed.X * (ScreenCenterX / (float)Math.Tan(FovAngle * (float)Math.PI / 360)) / vTransformed.Z;
-            Screenlocation.Y = ScreenCenterY - vTransformed.Y * (ScreenCenterX / (float)Math.Tan(FovAngle * (float)Math.PI / 360)) / vTransformed.Z;
+            screenlocation.X = screenCenterX + vTransformed.X * (screenCenterX / (float)Math.Tan(fovAngle * (float)Math.PI / 360)) / vTransformed.Z;
+            screenlocation.Y = screenCenterY - vTransformed.Y * (screenCenterX / (float)Math.Tan(fovAngle * (float)Math.PI / 360)) / vTransformed.Z;
 
-            return true;
+            //超出屏幕边界返回false
+            return !(screenlocation.X > Setting.Screen.Width | screenlocation.Y > Setting.Screen.Height);
         }
 
-        private SharpDX.DirectWrite.TextLayout TextLayout(string szText, SharpDX.DirectWrite.Factory factory, SharpDX.DirectWrite.TextFormat font) =>
-            new SharpDX.DirectWrite.TextLayout(factory, szText, font, float.MaxValue, float.MaxValue);
+        private TextLayout TextLayout(string szText, SharpDX.DirectWrite.Factory factory, SharpDX.DirectWrite.TextFormat font) =>
+            new TextLayout(factory, szText, font, float.MaxValue, float.MaxValue);
 
 
-        private void DrawLine(float x, float y, float xx, float yy, WindowRenderTarget device, Brush brush)
+        private void DrawLine(float x, float y, float xx, float yy, RenderTarget device, Brush brush)
         {
             RawVector2[] dLine = new RawVector2[2];
 
@@ -454,17 +434,17 @@ namespace CPUZ
 
         }
 
-        private void DrawLines(RawVector2[] point0, WindowRenderTarget device, Brush brush)
+        private void DrawLines(RawVector2[] point0, RenderTarget device, Brush brush)
         {
             if (point0.Length < 2)
                 return;
 
-            for (int x = 0; x < point0.Length - 1; x++)
+            for (var x = 0; x < point0.Length - 1; x++)
                 device.DrawLine(point0[x], point0[x + 1], brush);
         }
 
 
-        private void DrawText(string szText, int x, int y, SharpDX.Direct2D1.Brush foregroundBroush, SharpDX.DirectWrite.Factory fontFactory, SharpDX.DirectWrite.TextFormat font, WindowRenderTarget device)
+        private void DrawText(string szText, int x, int y, SharpDX.Direct2D1.Brush foregroundBroush, SharpDX.DirectWrite.Factory fontFactory, SharpDX.DirectWrite.TextFormat font, RenderTarget device)
         {
             var tempTextLayout = TextLayout(szText, fontFactory, font);
 
