@@ -2,6 +2,8 @@
 {
     public static class Setting
     {
+
+
         public static bool 车辆显示 { get; set; } = true;
         public static bool 物品显示 { get; set; } = false;
         public static bool 距离和血量 { get; set; } = true;
@@ -15,10 +17,10 @@
         public static bool Web端 { get; set; } = false;
 
 
-        public static ulong UWorldOffset { get; } = 0x3CA74A8;
-        public static ulong GNameOffset { get; } = 0x3BAA290;
+        public static ulong UWorldOffset { get; } = 0x3A4F1A8;
+        public static ulong GNameOffset { get; } = 0x3951F90;
 
-        public static ScreenType Screen { get; } = new ScreenType { Width = 1920, Height = 1080 };
+        public static ScreenType Screen { get; } = new ScreenType { Width = 2560, Height = 1440 };
 
         public static 模式 模式 { get; set; } = 模式.模式二;
     }
