@@ -1,8 +1,6 @@
 # 腾讯代理吃鸡，此项目停更只用于学习交流
 
 
-# helloworld
-哈喽哈
 
 # node server 
 运行npm install安装环境
